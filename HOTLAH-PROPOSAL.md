@@ -1,6 +1,6 @@
 # Hotlah — design and architecture proposal
 
-Status: recommendations for review, not an approved implementation specification. Prepared on 2026-09-21. Confirmed requirements are in PRODUCT.md. No application code has been written.
+Status: cream, charcoal, and yellow visual direction approved by the user. Detailed screen layouts and architecture remain recommendations for review, not an approved implementation specification. Prepared on 2026-09-21. Confirmed requirements are in PRODUCT.md. No application code has been written.
 
 ## Recommended design language
 
