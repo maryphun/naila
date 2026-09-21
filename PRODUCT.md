@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Confirmed product record from the discovery conversation. The cream, charcoal, and yellow visual direction is approved. Detailed screens and architecture recommendations in HOTLAH-PROPOSAL.md remain subject to review. Development has not been authorized for this phase.
+Confirmed product record from the discovery conversation. The cream, charcoal, and yellow visual direction and first four mobile screen concepts are approved; see design/mobile-v1/README.md. Further screens and architecture recommendations in HOTLAH-PROPOSAL.md remain subject to review. Development has not been authorized for this phase.
 
 ## Platform
 
@@ -92,7 +92,8 @@ A local nail-service marketplace inspired by Hot Pepper's service menus and Tabe
 - Five user-supplied mobile UI references show cream backgrounds, dark outlines, yellow accents, rounded controls, restrained layouts, and bottom navigation.
 - Reference images are visual inspiration; pet illustrations, medical content, and AI-assistant features are not product requirements.
 - Approved visual direction: warm cream backgrounds, charcoal text/outlines, yellow primary actions, rounded controls, professional typography, and nail photography.
-- Exact colour values, font choices, iconography, and screen composition remain subject to screen-design review.
+- First mobile concepts approved: customer discovery, service/availability, pending booking conversation, and merchant dashboard. Files and approval context are in design/mobile-v1/.
+- Exact measured colour values, font choices, and remaining screen compositions still require detailed design review.
 
 ## Evidence on Hand
 

@@ -1,6 +1,6 @@
 # Hotlah — design and architecture proposal
 
-Status: cream, charcoal, and yellow visual direction approved by the user. Detailed screen layouts and architecture remain recommendations for review, not an approved implementation specification. Prepared on 2026-09-21. Confirmed requirements are in PRODUCT.md. No application code has been written.
+Status: cream, charcoal, and yellow visual direction and the first four mobile concepts approved by the user; see design/mobile-v1/README.md. Architecture and remaining detailed flows remain recommendations for review, not an approved implementation specification. Prepared on 2026-09-21. Confirmed requirements are in PRODUCT.md. No application code has been written.
 
 ## Recommended design language
 
@@ -115,4 +115,4 @@ The free email tier is suitable for a pilot, but booking creation, approval, can
 
 ## Review boundary
 
-This proposal selects a recommended direction without starting development. The next design deliverable should show the mobile discovery page, service detail and availability, booking conversation, and merchant Today screen using the same visual system. Review that set before application implementation. Subscription amount, allowance threshold, map data, pending expiration, and payment-provider eligibility remain explicit later decisions.
+The first mobile discovery, service/availability, booking conversation, and merchant Today concepts have been generated and approved; see design/mobile-v1/README.md. Development has not started. Remaining flows and detailed layouts still need design, and the architecture proposal still needs review. Subscription amount, allowance threshold, map data, pending expiration, and payment-provider eligibility remain explicit later decisions.
