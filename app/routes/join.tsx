@@ -1,6 +1,12 @@
 import { Link,useNavigate } from 'react-router';
-import { ArrowRight,Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useApp } from '../lib/context';
 import { MerchantForm } from '../components/merchant-form';
 import { PageHeader,AuthRequired } from '../components/ui';
-export default function Join(){const {t,session,refreshSession,toast}=useApp();const navigate=useNavigate();return <div className="narrow-page"><PageHeader title={t('Make room for new customers','迎接更多新顾客')} back="/account"/>{session.merchant?<div className="empty-state"><h2>{t(session.merchant.approved?'Your workspace is ready':'Your application is in review',session.merchant.approved?'工作台已准备好':'申请正在审核中')}</h2><p>{t('Manage your profile and service menu in your workspace.','在工作台管理您的资料与服务菜单。')}</p><Link to="/merchant" className="button primary">{t('Open workspace','进入工作台')}<ArrowRight size={18}/></Link></div>:<><div className="join-intro"><h1>{t('Your talent. Their next favourite.','让您的手艺，成为他们的新宠。')}</h1><p>{t('A home studio, a solo nailist, a fresh start. There’s a place for you on Hotlah.','无论家庭工作室、独立美甲师，还是刚刚起步，Hotlah 都为您留有一席之地。')}</p><p className="booking-promise"><Check size={18}/>{t('Free during our launch. Every application is reviewed.','上线初期免费使用。所有申请均需审核。')}</p></div>{session.user?<MerchantForm onSaved={async()=>{await refreshSession();toast(t('Application sent. We’ll review your profile.','申请已提交，我们将审核您的资料。'));navigate('/merchant');}}/>:<AuthRequired merchant/>}</>}</div>;}
+export default function Join(){
+  const {t,session,refreshSession,toast}=useApp();const navigate=useNavigate();
+  return <div className="narrow-page"><PageHeader title={t('Set up your studio','设置您的店铺')} back="/account"/>
+    {session.merchant?<div className="empty-state"><h2>{t(session.merchant.approved?'Your workspace is ready':'Your application is in review',session.merchant.approved?'工作台已准备好':'申请正在审核中')}</h2><p>{t('Build your menu and update your profile in Your business.','在经营空间中建立菜单并更新资料。')}</p><Link to="/merchant/business" className="button primary">{t('Manage my business','管理经营空间')}<ArrowRight size={18}/></Link></div>
+    :session.user?<MerchantForm onSaved={async()=>{await refreshSession();toast(t('Application sent. Let’s build your menu.','申请已提交。接下来建立服务菜单。'));navigate('/merchant/business?welcome=1');}}/>:<AuthRequired merchant/>}
+  </div>;
+}

@@ -209,6 +209,7 @@ api.post('/api/merchant', async c => {
 api.patch('/api/merchant', async c => {
   const actor=requireActor(c.get('actor'));
   const data=merchantSchema.parse(await c.req.json());
+  if(/https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(`${data.name} ${data.bio} ${data.policy}`))throw new HTTPException(400,{message:'Keep public text free of contact links and phone numbers. Use the private phone field instead.'});
   const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,bio=?,address=?,phone=?,styles=?,hours=?,policy=?,auto_approve=? WHERE user_id=?').bind(data.name,data.area,data.type,data.bio,data.address,data.phone,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),actor.id).run();
   if(!result.meta.changes)throw new HTTPException(404);
   return c.json({ok:true});
