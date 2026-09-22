@@ -8,7 +8,7 @@ Confirmed product record from the discovery conversation. The cream, charcoal, a
 
 web
 
-Responsive web first, followed by Android and then iOS. Phone usability is the priority; desktop browsers must remain fully usable. One product contains customer and merchant experiences, with additional registration and approval required for merchant access.
+Responsive web first, followed by Android and then iOS. Hotlah deliberately uses one phone-first interface at every browser width: wide browsers center the same iPhone-width canvas instead of switching to a desktop information architecture. One product contains customer and merchant experiences, with additional registration and approval required for merchant access.
 
 ## Stack
 

@@ -177,11 +177,11 @@ Manrope Variable is bundled in app/root.tsx. Noto Sans SC is the declared Chines
 
 ## Layout
 
-The outer desktop container is capped at 1264px with 40px horizontal padding. At 1000px and below, gutters become 28px; at 700px and below, 22px; below 360px, 16px. Repeated gaps are commonly 8, 10, 16, 20 and 24px. These are observed steps, not a requirement to quantize every spacing value.
+The product uses one phone interface at every viewport width. The application canvas is capped at 430px and centered on larger browser windows against a quiet neutral surround; it never expands into a desktop information architecture. Inside the canvas, horizontal gutters are 22px and reduce to 16px below 360px. Repeated gaps are commonly 8, 10, 16, 20 and 24px.
 
-Service listings use three columns on desktop, two at 1000px and below, and one on phones, with a 23px phone row gap. Image crops use 4:3 on desktop and the final 1.55 aspect ratio on phones. The style strip scrolls within a constrained viewport instead of expanding the page.
+Service listings remain one column with a 23px row gap and a 1.55 image aspect ratio at every browser width. The style strip scrolls within the phone canvas instead of expanding the page.
 
-Detail, conversation and merchant workspace columns stack on phones. The desktop availability panel is sticky; phone booking actions and the message composer remain in normal flow under the final CSS override. Only the bottom navigation is fixed. The app reserves 85px below content, with safe-area padding inside navigation.
+Detail, conversation and merchant workspace layouts always stack. Booking actions and the message composer remain in normal flow. The mobile bottom navigation is the sole primary navigation on every browser width and is fixed to the centered phone canvas. The app reserves 85px below content, with safe-area padding inside navigation.
 
 Forms generally use two columns, collapsing below 360px. Dialogs cap width at 520px and remain within the viewport with internal scrolling. Do not infer universal 44px sizing: frequent phone chips, save/send, header icon, language and location controls have the enlarged target, while some dense controls retain contextual dimensions.
 
@@ -251,4 +251,3 @@ Radix dialogs provide modal behavior, titles, close controls and optional descri
 - Don't present pending requests as confirmed appointments.
 - Don't remove prices, location or availability from service comparison.
 - Don't promote old mockup measurements over the final responsive CSS.
-
