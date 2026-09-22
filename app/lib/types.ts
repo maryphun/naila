@@ -27,8 +27,9 @@ export interface SessionInfo {
   merchant: Merchant | null; demo: boolean; admin: boolean;
   providers: { google: boolean; apple: boolean; facebook: boolean };
 }
-export const STYLES = ['French', 'Cat eye', 'Glazed', 'Minimal', 'Hand-painted', 'Chrome', '3D art'] as const;
-export const STYLE_ZH: Record<string, string> = { French: '法式', 'Cat eye': '猫眼', Glazed: '珍珠光泽', Minimal: '简约', 'Hand-painted': '手绘', Chrome: '镜面', '3D art': '立体装饰' };
+export const STYLES = ['French', 'Cat eye', 'Glazed', 'Minimal', 'Hand-painted', 'Chrome', '3D art', 'Korean', 'Chinese', 'Mirror', 'Magnet'] as const;
+export const MERCHANT_STYLES = [...STYLES, 'Other'] as const;
+export const STYLE_ZH: Record<string, string> = { French: '法式', 'Cat eye': '猫眼', Glazed: '珍珠光泽', Minimal: '简约', 'Hand-painted': '手绘', Chrome: '金属光泽', '3D art': '立体装饰', Korean: '韩式', Chinese: '中式', Mirror: '镜面', Magnet: '磁吸', Other: '其他' };
 export const money = (cents: number) => `RM ${new Intl.NumberFormat('en-MY', { maximumFractionDigits: 2 }).format(cents / 100)}`;
 export const time = (minute: number) => `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
 export function localDate(offset = 0): string {

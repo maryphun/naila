@@ -22,6 +22,7 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('Choose at least one specialty.');
   await page.getByRole('checkbox',{name:'French',exact:true}).check();
+  await page.getByRole('checkbox',{name:'Other',exact:true}).check();
   await page.getByRole('button',{name:'Back',exact:true}).click();
   await expect(page.getByLabel('Exact address')).toHaveValue('12 Example Street, Petaling Jaya');
   await page.reload();
@@ -36,7 +37,7 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await expect(page.getByRole('heading',{name:'A final look before you join.'})).toBeVisible();
   await page.getByRole('button',{name:'Submit for review'}).click();
   await expect(page.getByRole('alert')).toContainText('Please try again shortly.');
-  expect(payload).toMatchObject({name:'Little Moon Nails',type:'home',styles:['French'],auto_approve:false,address:'12 Example Street, Petaling Jaya'});
+  expect(payload).toMatchObject({name:'Little Moon Nails',type:'home',styles:['French','Other'],auto_approve:false,address:'12 Example Street, Petaling Jaya'});
   expect(payload).not.toHaveProperty('approved');
   await expect(page.getByRole('button',{name:'Submit for review'})).toBeEnabled();
 });
@@ -56,6 +57,7 @@ test('merchant can edit a service, retain unsaved work and persist changes',asyn
     await expect(page.getByLabel('Service name · English')).toHaveValue('Updated French set');
     await page.getByRole('button',{name:'Continue',exact:true}).click();
     await page.getByLabel('Price · MYR').fill('99');
+    await page.getByRole('combobox',{name:'Nail style',exact:true}).selectOption('Other');
     await page.getByLabel('Break after · minutes').fill('20');
     await page.getByRole('button',{name:'Continue',exact:true}).click();
     await page.screenshot({path:'.impeccable/review/service-review-390.png',fullPage:true});
@@ -64,7 +66,7 @@ test('merchant can edit a service, retain unsaved work and persist changes',asyn
     await page.reload();
     await expect(page.locator('.merchant-menu-item').filter({hasText:'Updated French set'})).toBeVisible();
     const result=await (await page.request.get('/api/merchant')).json();
-    expect(result.services.find((s:Service)=>s.id===service.id)).toMatchObject({price:9900,buffer:20});
+    expect(result.services.find((s:Service)=>s.id===service.id)).toMatchObject({price:9900,buffer:20,style:'Other'});
   }finally{expect((await page.request.patch('/api/merchant/services/'+service.id,{data:restore})).ok()).toBe(true);}
 });
 
