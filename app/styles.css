@@ -210,3 +210,15 @@ body{background:#eeeedf}.app-shell{position:relative;width:100%;max-width:430px;
 .nail-style-option[aria-pressed=true]{background:var(--yellow);border-color:var(--ink)}
 .nail-style-option:hover{border-color:var(--ink)}
 .nail-style-option>svg{position:absolute;right:var(--spacing-2);bottom:var(--spacing-2)}
+
+/* The supplied sheep mark leads the wordmark without changing its text rhythm. */
+.wordmark{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.brand-mark{display:block;width:35px;height:auto;flex:none}
+.desktop-footer .brand-mark{width:30px}
+
+/* Keep discovery styles on one swipeable row, including icon-bearing chips. */
+.style-strip{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+.style-strip>.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:0 0 auto;touch-action:pan-x}
+
+/* Signed-out visitors share the same sheep identity as the Hotlah wordmark. */
+.account-summary:has(>.button)>.avatar.large{overflow:hidden;background-color:var(--paper);background-image:url('/brand-mark.png');background-repeat:no-repeat;background-position:center;background-size:72%;font-size:0}

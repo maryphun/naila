@@ -5,6 +5,7 @@ import { useApp } from '../lib/context';
 import { post,useApi } from '../lib/api';
 import type { Notice } from '../lib/types';
 import { Modal } from './ui';
+import { BrandWordmark } from './brand-wordmark';
 
 type SocialProvider='google'|'facebook'|'apple';
 function ProviderIcon({provider}:{provider:SocialProvider}){
@@ -25,14 +26,14 @@ export function Shell({children}:{children:React.ReactNode}) {
   const signIn=async(provider:string)=>{setBusy(provider);setError('');try{const response=await post<{url:string}>('/api/auth/sign-in/social',{provider,callbackURL:location.pathname});if(response.url)window.location.assign(response.url);}catch(e){setError((e as Error).message);}finally{setBusy('');}};
   return <div className={`app-shell ${merchant?'merchant-shell':''}`}>
     <a href="#main-content" className="skip-link">Skip to content</a>
-    <header className="site-header"><div className="header-inner"><Link to={merchant?'/merchant':'/'} className="wordmark" aria-label="Hotlah home">Hotlah<span className="brand-dot">.</span></Link>
+    <header className="site-header"><div className="header-inner"><Link to={merchant?'/merchant':'/'} className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link>
       <nav className="desktop-nav" aria-label="Main navigation">{items.map(({to,label,icon:Icon,end})=><NavLink key={to} to={to} end={end} className={({isActive})=>`desktop-nav-link ${isActive?'active':''}`}><Icon size={17}/>{label}</NavLink>)}</nav>
       <div className="header-actions"><button className="language-button" onClick={()=>setLang(lang==='en'?'zh':'en')} aria-label={lang==='en'?'切换中文':'Switch to English'}><span className={lang==='en'?'selected':''}>EN</span><span className="language-divider">/</span><span className={lang==='zh'?'selected':''}>中文</span></button>
       {session.user?<button className="icon-button notification-button" onClick={()=>{setNoticesOpen(true);post('/api/notifications/read').then(notices.refresh);}} aria-label={t('Notifications','通知')}><Bell size={21}/>{unread>0&&<span className="notification-dot"/>}</button>:<button className="desktop-signin" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}<ArrowUpRight size={16}/></button>}
       {merchant&&<Link className="icon-button" to="/" aria-label={t('Switch to customer view','切换顾客视图')}><ArrowLeftRight size={20}/></Link>}</div>
     </div></header>
     <main id="main-content" className="main-content">{children}</main>
-    <footer className="desktop-footer"><Link to="/" className="wordmark">Hotlah<span className="brand-dot">.</span></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
+    <footer className="desktop-footer"><Link to="/" className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
     <nav className="legal-links" aria-label={t('Legal information','法律信息')}><Link to="/privacy">{t('Privacy','隐私')}</Link><span aria-hidden="true">·</span><Link to="/data-deletion">{t('Data deletion','数据删除')}</Link></nav>
     {session.demo&&<div className="preview-label">{t('Local preview · example studios and prices','本地预览 · 示例工作室及价格')}</div>}
     <nav className="bottom-nav" aria-label={t('Main navigation','主导航')}>{items.map(({to,label,icon:Icon,end})=><NavLink key={to} to={to} end={end} className={({isActive})=>`bottom-link ${isActive?'active':''}`}><span className="nav-icon"><Icon size={23} strokeWidth={1.65}/></span><span>{label}</span></NavLink>)}</nav>
