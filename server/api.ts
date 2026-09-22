@@ -14,6 +14,11 @@ import type { Service } from '../app/lib/types';
 export const api = new Hono<ApiContext>();
 const uuid = () => crypto.randomUUID();
 const requireActor = (actor: Actor | null) => { if (!actor) throw new HTTPException(401, { message: 'Please sign in to continue.' }); return actor; };
+const requireAdmin = (c: Parameters<typeof actorFor>[0]) => {
+  const actor=requireActor(c.get('actor'));
+  if(!isAdmin(actor,c.env,c.get('demo')))throw new HTTPException(403,{message:'Administrator access is required.'});
+  return actor;
+};
 api.use('/api/*', bodyLimit({ maxSize: 5 * 1024 * 1024, onError: c => c.json({ error: 'Please choose a photo smaller than 5 MB.' }, 413) }));
 api.use('/api/*', async (c, next) => {
   c.header('Cache-Control', 'no-store');
@@ -189,6 +194,7 @@ api.post('/api/notifications/read', async c => {
 
 const hoursSchema=z.object({open:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),close:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),days:z.array(z.number().int().min(0).max(6)).min(1)}).refine(h=>minutes(h.close)>minutes(h.open),'Closing time must be after opening time.');
 const merchantSchema=z.object({name:z.string().trim().min(2).max(80),area:z.string().min(2).max(100),type:z.enum(['home','studio','mobile']),bio:z.string().trim().max(1200),address:z.string().trim().min(5).max(250),phone:z.string().regex(/^(\+?\d{9,15})?$/,'Use a phone number with country code, e.g. +60123456789.'),styles:z.array(z.string().max(30)).min(1).max(15),hours:hoursSchema,policy:z.string().trim().min(10).max(1500),auto_approve:z.boolean()});
+const adminMerchantSchema=merchantSchema.extend({lat:z.number().min(-90).max(90),lng:z.number().min(-180).max(180)});
 api.get('/api/merchant', async c => {
   const actor=requireActor(c.get('actor'));
   const row=await c.env.DB.prepare('SELECT * FROM merchants WHERE user_id=?').bind(actor.id).first<Record<string,unknown>>();
@@ -287,22 +293,70 @@ api.get('/api/media/:key', async c => {
   return c.body(object.body);
 });
 api.get('/api/admin', async c => {
-  if(!isAdmin(c.get('actor'),c.env,c.get('demo')))throw new HTTPException(403);
-  const settings=await c.env.DB.prepare('SELECT * FROM settings').all<{key:string;value:string}>();
-  const merchants=await c.env.DB.prepare('SELECT id,name,area,type,approved,subscribed FROM merchants ORDER BY created_at DESC').all();
-  return c.json({settings:Object.fromEntries(settings.results.map(x=>[x.key,x.value])),merchants:merchants.results});
+  requireAdmin(c);
+  const since=localDate(-29);
+  const [settings,users,merchantTotals,serviceTotals,bookingTotals,acquisitions,eventTotals,merchants]=await Promise.all([
+    c.env.DB.prepare('SELECT * FROM settings').all<{key:string;value:string}>(),
+    c.env.DB.prepare('SELECT COUNT(*) count FROM user').first<{count:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) total,COALESCE(SUM(CASE WHEN approved=1 THEN 1 ELSE 0 END),0) approved,COALESCE(SUM(CASE WHEN approved=0 THEN 1 ELSE 0 END),0) pending FROM merchants').first<{total:number;approved:number;pending:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) total,COALESCE(SUM(CASE WHEN active=1 THEN 1 ELSE 0 END),0) active FROM services').first<{total:number;active:number}>(),
+    c.env.DB.prepare("SELECT COUNT(*) requests,COALESCE(SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END),0) pending,COALESCE(SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END),0) approved,COALESCE(SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END),0) completed FROM bookings").first<{requests:number;pending:number;approved:number;completed:number}>(),
+    c.env.DB.prepare('SELECT COUNT(*) count FROM acquisitions').first<{count:number}>(),
+    c.env.DB.prepare("SELECT COALESCE(SUM(CASE WHEN kind='impression' THEN 1 ELSE 0 END),0) impressions,COALESCE(SUM(CASE WHEN kind='view' THEN 1 ELSE 0 END),0) views FROM events WHERE day>=?").bind(since).first<{impressions:number;views:number}>(),
+    c.env.DB.prepare(`SELECT m.id,m.name,m.area,m.type,m.approved,m.subscribed,m.created_at,u.name owner_name,u.email owner_email,
+      (SELECT COUNT(*) FROM services s WHERE s.merchant_id=m.id) services,
+      (SELECT COUNT(*) FROM bookings b WHERE b.merchant_id=m.id) bookings,
+      (SELECT COUNT(*) FROM bookings b WHERE b.merchant_id=m.id AND b.status='completed') completed,
+      (SELECT COUNT(*) FROM acquisitions a WHERE a.merchant_id=m.id) new_customers,
+      (SELECT COUNT(*) FROM events e WHERE e.merchant_id=m.id AND e.kind='impression' AND e.day>=?) impressions,
+      (SELECT COUNT(*) FROM events e WHERE e.merchant_id=m.id AND e.kind='view' AND e.day>=?) views
+      FROM merchants m JOIN user u ON u.id=m.user_id ORDER BY m.approved ASC,m.created_at DESC`).bind(since,since).all<Record<string,unknown>>()
+  ]);
+  const impressions=eventTotals?.impressions??0,views=eventTotals?.views??0;
+  return c.json({
+    settings:Object.fromEntries(settings.results.map(x=>[x.key,x.value])),
+    insights:{users:users?.count??0,merchants:merchantTotals?.total??0,pendingMerchants:merchantTotals?.pending??0,approvedMerchants:merchantTotals?.approved??0,services:serviceTotals?.total??0,activeServices:serviceTotals?.active??0,requests:bookingTotals?.requests??0,pendingBookings:bookingTotals?.pending??0,approvedBookings:bookingTotals?.approved??0,completed:bookingTotals?.completed??0,newCustomers:acquisitions?.count??0,impressions,views,ctr:impressions?Math.round(views/impressions*1000)/10:0},
+    merchants:merchants.results.map(row=>({...row,ctr:Number(row.impressions)?Math.round(Number(row.views)/Number(row.impressions)*1000)/10:0}))
+  });
+});
+api.get('/api/admin/merchants/:id', async c => {
+  requireAdmin(c);
+  const id=c.req.param('id'),since=localDate(-29);
+  const merchant=await c.env.DB.prepare('SELECT m.*,u.name owner_name,u.email owner_email FROM merchants m JOIN user u ON u.id=m.user_id WHERE m.id=?').bind(id).first<Record<string,unknown>>();
+  if(!merchant)throw new HTTPException(404,{message:'Merchant not found.'});
+  const [services,bookingTotals,customers,eventTotals]=await Promise.all([
+    c.env.DB.prepare('SELECT id,name,name_zh,price,duration,active,promoted FROM services WHERE merchant_id=? ORDER BY rowid').bind(id).all(),
+    c.env.DB.prepare("SELECT COUNT(*) requests,COALESCE(SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END),0) pending,COALESCE(SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END),0) approved,COALESCE(SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END),0) completed FROM bookings WHERE merchant_id=?").bind(id).first<Record<string,number>>(),
+    c.env.DB.prepare('SELECT COUNT(*) count FROM acquisitions WHERE merchant_id=?').bind(id).first<{count:number}>(),
+    c.env.DB.prepare("SELECT COALESCE(SUM(CASE WHEN kind='impression' THEN 1 ELSE 0 END),0) impressions,COALESCE(SUM(CASE WHEN kind='view' THEN 1 ELSE 0 END),0) views FROM events WHERE merchant_id=? AND day>=?").bind(id,since).first<{impressions:number;views:number}>()
+  ]);
+  const impressions=eventTotals?.impressions??0,views=eventTotals?.views??0;
+  return c.json({merchant:{...publicMerchant(merchant),address:merchant.address,phone:merchant.phone,lat:merchant.lat,lng:merchant.lng,auto_approve:merchant.auto_approve,approved:merchant.approved,subscribed:merchant.subscribed,created_at:merchant.created_at,owner_name:merchant.owner_name,owner_email:merchant.owner_email},services:services.results,insights:{...(bookingTotals??{}),newCustomers:customers?.count??0,impressions,views,ctr:impressions?Math.round(views/impressions*1000)/10:0}});
 });
 api.post('/api/admin/settings', async c => {
-  if(!isAdmin(c.get('actor'),c.env,c.get('demo')))throw new HTTPException(403);
+  const actor=requireAdmin(c);
   const data=z.object({allowance:z.number().int().min(0).max(100000),billingEnabled:z.boolean()}).parse(await c.req.json());
   if(data.billingEnabled&&!c.get('demo'))throw new HTTPException(409,{message:'Connect and verify a subscription provider before enabling billing on the live platform.'});
-  await c.env.DB.batch([c.env.DB.prepare('UPDATE settings SET value=? WHERE key=\'allowance\'').bind(String(data.allowance)),c.env.DB.prepare('UPDATE settings SET value=? WHERE key=\'billing_enabled\'').bind(String(data.billingEnabled)),c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),c.get('actor')!.id,'settings.updated',JSON.stringify(data))]);
+  await c.env.DB.batch([c.env.DB.prepare('UPDATE settings SET value=? WHERE key=\'allowance\'').bind(String(data.allowance)),c.env.DB.prepare('UPDATE settings SET value=? WHERE key=\'billing_enabled\'').bind(String(data.billingEnabled)),c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),actor.id,'settings.updated',JSON.stringify(data))]);
   return c.json({ok:true});
 });
 api.post('/api/admin/merchants/:id', async c => {
-  if(!isAdmin(c.get('actor'),c.env,c.get('demo')))throw new HTTPException(403);
+  const actor=requireAdmin(c);
   const {approved}=z.object({approved:z.boolean()}).parse(await c.req.json());
-  await c.env.DB.batch([c.env.DB.prepare('UPDATE merchants SET approved=? WHERE id=?').bind(Number(approved),c.req.param('id')),c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),c.get('actor')!.id,'merchant.reviewed',JSON.stringify({id:c.req.param('id'),approved}))]);
+  const merchant=await c.env.DB.prepare('SELECT id,user_id,name,approved FROM merchants WHERE id=?').bind(c.req.param('id')).first<{id:string;user_id:string;name:string;approved:number}>();
+  if(!merchant)throw new HTTPException(404,{message:'Merchant not found.'});
+  const statements=[c.env.DB.prepare('UPDATE merchants SET approved=? WHERE id=?').bind(Number(approved),merchant.id),c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),actor.id,'merchant.reviewed',JSON.stringify({id:merchant.id,approved}))];
+  if(Boolean(merchant.approved)!==approved){const title=approved?'Your Hotlah studio is approved':'Your Hotlah studio is no longer published',body=approved?`${merchant.name} is now visible to customers. You can start receiving booking requests.`:`${merchant.name} has been removed from customer discovery. Open Hotlah or contact support for details.`;statements.push(c.env.DB.prepare('INSERT INTO notifications(id,user_id,booking_id,title,body) VALUES(?,?,NULL,?,?)').bind(uuid(),merchant.user_id,title,body),c.env.DB.prepare('INSERT INTO outbox(id,user_id,subject,body) VALUES(?,?,?,?)').bind(uuid(),merchant.user_id,title,body));}
+  await c.env.DB.batch(statements);
+  return c.json({ok:true});
+});
+api.patch('/api/admin/merchants/:id', async c => {
+  const actor=requireAdmin(c),id=c.req.param('id');
+  const data=adminMerchantSchema.parse(await c.req.json());
+  if(/https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(`${data.name} ${data.bio} ${data.policy}`))throw new HTTPException(400,{message:'Keep public text free of contact links and phone numbers. Use the private phone field instead.'});
+  const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,bio=?,address=?,phone=?,lat=?,lng=?,styles=?,hours=?,policy=?,auto_approve=? WHERE id=?').bind(data.name,data.area,data.type,data.bio,data.address,data.phone,data.lat,data.lng,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),id).run();
+  if(!result.meta.changes)throw new HTTPException(404,{message:'Merchant not found.'});
+  await c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),actor.id,'merchant.profile.updated',JSON.stringify({id,fields:Object.keys(data)})).run();
   return c.json({ok:true});
 });
 api.post('/api/demo/access', async c => {
