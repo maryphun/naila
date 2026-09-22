@@ -55,11 +55,12 @@ api.post('/api/demo/login', async c => {
 });
 api.post('/api/logout', async c => {
   deleteCookie(c,'hotlah_preview',{path:'/'});
-  if (c.env.BETTER_AUTH_SECRET) await auth(c.env).api.signOut({headers:c.req.raw.headers}).catch(() => null);
-  // Better Auth handles its own sign-out response/cookie on the client; invalidate the session here too.
-  deleteCookie(c,'better-auth.session_token',{path:'/'});
-  deleteCookie(c,'__Secure-better-auth.session_token',{path:'/'});
-  return c.json({ok:true});
+  const response=c.json({ok:true});
+  if (c.env.BETTER_AUTH_SECRET) {
+    const signedOut=await auth(c.env).api.signOut({headers:c.req.raw.headers,asResponse:true}).catch(()=>null);
+    for(const cookie of signedOut?.headers.getSetCookie()??[])response.headers.append('Set-Cookie',cookie);
+  }
+  return response;
 });
 api.get('/api/catalog', async c => {
   const result = await c.env.DB.prepare(`${publicCatalogueSql} ORDER BY s.promoted DESC,s.rowid`).all<Service>();

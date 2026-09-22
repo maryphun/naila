@@ -11,5 +11,7 @@ export default [
   route('merchant/calendar','routes/calendar.tsx'),
   route('merchant/business','routes/business.tsx'),
   route('admin','routes/admin.tsx'),
+  route('privacy','routes/privacy.tsx'),
+  route('data-deletion','routes/data-deletion.tsx'),
   route('*','routes/not-found.tsx'),
 ] satisfies RouteConfig;

@@ -28,10 +28,10 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await expect(page.getByLabel('Studio / nailist name')).toHaveValue('Little Moon Nails');
   for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('switch',{name:/Automatically approve/})).not.toBeChecked();
-  await page.getByLabel('Close',{exact:true}).fill('09:00');
+  await page.getByRole('textbox',{name:'Close',exact:true}).fill('09:00');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('closing time after opening');
-  await page.getByLabel('Close',{exact:true}).fill('19:00');
+  await page.getByRole('textbox',{name:'Close',exact:true}).fill('19:00');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('heading',{name:'A final look before you join.'})).toBeVisible();
   await page.getByRole('button',{name:'Submit for review'}).click();

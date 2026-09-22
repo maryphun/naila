@@ -18,6 +18,14 @@ export function auth(env: Env) {
       ...(env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET ? { apple: { clientId: env.APPLE_CLIENT_ID, clientSecret: env.APPLE_CLIENT_SECRET } } : {}),
       ...(env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET ? { facebook: { clientId: env.FACEBOOK_CLIENT_ID, clientSecret: env.FACEBOOK_CLIENT_SECRET } } : {}),
     },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+        allowDifferentEmails: false,
+        requireLocalEmailVerified: false,
+      },
+    },
     trustedOrigins: [env.APP_URL],
     rateLimit: { enabled: true, storage: 'memory', window: 60, max: 30 },
   });

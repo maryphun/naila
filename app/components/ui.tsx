@@ -1,15 +1,24 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import { X,ArrowLeft,LoaderCircle,LockKeyhole,CalendarDays,Search,ArrowRight } from 'lucide-react';
+import { Dialog as AstryxDialog,DialogHeader } from '@astryxdesign/core/Dialog';
+import type { DialogPurpose } from '@astryxdesign/core/Dialog';
+import { Tab,TabList } from '@astryxdesign/core/TabList';
+import { ArrowLeft,LoaderCircle,LockKeyhole,CalendarDays,ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
-import type { ReactNode } from 'react';
+import { useId,type ReactNode } from 'react';
 import { useApp } from '../lib/context';
 import type { BookingStatus } from '../lib/types';
 
-export function Modal({open,onOpenChange,title,description,children,className=''}:{open:boolean;onOpenChange:(open:boolean)=>void;title:string;description?:string;children:ReactNode;className?:string}) {
-  return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal><Dialog.Overlay className="dialog-overlay"/><Dialog.Content className={`dialog-content ${className}`} aria-describedby={description?'dialog-description':undefined}>
-    <div className="dialog-heading"><Dialog.Title>{title}</Dialog.Title><Dialog.Close className="icon-button" aria-label="Close"><X size={21}/></Dialog.Close></div>
-    {description&&<Dialog.Description id="dialog-description" className="muted dialog-description">{description}</Dialog.Description>}{children}
-  </Dialog.Content></Dialog.Portal></Dialog.Root>;
+export function Modal({open,onOpenChange,title,description,children,className='',purpose='info'}:{open:boolean;onOpenChange:(open:boolean)=>void;title:string;description?:string;children:ReactNode;className?:string;purpose?:DialogPurpose}) {
+  const descriptionId=useId();
+  return <AstryxDialog isOpen={open} onOpenChange={onOpenChange} purpose={purpose} padding={0} width={520} maxHeight="90dvh" className={`dialog-content ${className}`} aria-describedby={description?descriptionId:undefined}>
+    <DialogHeader className="dialog-heading" title={title} onOpenChange={onOpenChange} hasDivider={false}/>
+    {description&&<p id={descriptionId} className="muted dialog-description">{description}</p>}{children}
+  </AstryxDialog>;
+}
+
+export function HotlahTabs({value,onChange,label,tabs,id,className=''}:{value:string;onChange:(value:string)=>void;label:string;tabs:{value:string;label:string}[];id:string;className?:string}){
+  return <TabList value={value} onChange={onChange} role="tablist" aria-label={label} overflow="scroll" className={`tabs ${className}`}>
+    {tabs.map(tab=><Tab key={tab.value} id={`${id}-${tab.value}-tab`} value={tab.value} label={tab.label} panelId={`${id}-${tab.value}-panel`}/>) }
+  </TabList>;
 }
 export function PageHeader({title,back='/',action}:{title:string;back?:string;action?:ReactNode}) {
   return <div className="page-header"><Link to={back} className="icon-button back-button" aria-label="Go back"><ArrowLeft size={23}/></Link><h1>{title}</h1>{action??<span className="header-spacer"/>}</div>;

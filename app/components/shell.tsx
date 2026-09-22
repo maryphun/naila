@@ -33,6 +33,7 @@ export function Shell({children}:{children:React.ReactNode}) {
     </div></header>
     <main id="main-content" className="main-content">{children}</main>
     <footer className="desktop-footer"><Link to="/" className="wordmark">Hotlah<span className="brand-dot">.</span></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
+    <nav className="legal-links" aria-label={t('Legal information','法律信息')}><Link to="/privacy">{t('Privacy','隐私')}</Link><span aria-hidden="true">·</span><Link to="/data-deletion">{t('Data deletion','数据删除')}</Link></nav>
     {session.demo&&<div className="preview-label">{t('Local preview · example studios and prices','本地预览 · 示例工作室及价格')}</div>}
     <nav className="bottom-nav" aria-label={t('Main navigation','主导航')}>{items.map(({to,label,icon:Icon,end})=><NavLink key={to} to={to} end={end} className={({isActive})=>`bottom-link ${isActive?'active':''}`}><span className="nav-icon"><Icon size={23} strokeWidth={1.65}/></span><span>{label}</span></NavLink>)}</nav>
     {toastMessage&&<div className="toast" role="status"><Check size={18}/>{toastMessage}</div>}
