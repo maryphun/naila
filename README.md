@@ -31,7 +31,7 @@ Use **Account → Local preview tools** to switch between fictional customer, me
 
 ## Architecture
 
-React Router SSR + React + Tailwind CSS, Radix dialogs and Lucide icons. A Cloudflare Worker serves the app and Hono API. D1 holds relational data; R2 holds uploaded photos. Better Auth uses Drizzle/D1 and is wired for Google, Apple and Facebook. A scheduled Worker processes completed appointments and email delivery. Chat uses modest foreground polling; no always-on server is required.
+React Router SSR + React + Tailwind CSS, Radix dialogs and Lucide icons. A Cloudflare Worker serves the app and Hono API. D1 holds relational data; R2 holds uploaded photos. Better Auth uses Drizzle/D1 at the explicit `/api/auth` base path and is wired for Google and Facebook. Apple support remains conditional and is hidden unless Apple credentials are configured. A scheduled Worker processes completed appointments and email delivery. Chat uses modest foreground polling; no always-on server is required.
 
 Booking counting, one-time credits and approval overlap checks run inside D1's write transaction using database triggers. Service details/prices are snapshotted when requested, so later menu edits cannot change existing bookings. Pending requests are not reservations; only approval reserves the slot. Unapproved requests remain pending. Past pending requests cannot be approved without a new request.
 
@@ -47,15 +47,15 @@ pnpm build
 pnpm test:e2e
 ```
 
-Verified: 10 unit tests and 7 browser tests pass, along with type-checking and the production build. Unit tests cover invalid dates, availability buffers, privacy, unique-customer counting, cancellation credit, subscription locking, overlapping approvals, blocked times and review eligibility. Browser tests cover discovery/filtering/saving, request/chat/cancellation, locked direct API access, cross-origin rejection, calculated availability, Chinese switching, region selection, the requested copy removals with preserved spacing, and horizontal overflow at 320/390/768/1440 px. Local test runs use fictional data and leave cancelled test bookings in history.
+Verified: 10 unit tests and 8 browser tests pass, along with type-checking and the production build. Unit tests cover invalid dates, availability buffers, privacy, unique-customer counting, cancellation credit, subscription locking, overlapping approvals, blocked times and review eligibility. Browser tests cover discovery/filtering/saving, request/chat/cancellation, locked direct API access, cross-origin rejection, configured-provider visibility, calculated availability, Chinese switching, region selection, the requested copy removals with preserved spacing, and horizontal overflow at 320/390/768/1440 px. Local test runs use fictional data and leave cancelled test bookings in history.
 
 ## Before a public launch
 
 This is not deployed and is not yet production-ready. These are deliberate integration boundaries, not simulated live services:
 
-1. Create the real D1 database and R2 bucket, replace the placeholder database ID, set the real domain/APP_URL, and apply migrations remotely **without** the demo seed.
-2. Configure OAuth provider applications, callback URLs (`/api/auth/callback/google`, `/apple`, `/facebook`) and secrets. Verify each provider with real accounts. The buttons remain disabled until credentials exist.
-3. Connect a verified email sender and `RESEND_API_KEY`; exercise delivery/retry behavior. In-app notifications work locally. Native push and native Android/iOS apps are future work.
+1. Create the R2 bucket named `hotlah-media` (`pnpm exec wrangler r2 bucket create hotlah-media`). It is bound to the Worker as `MEDIA` and stores merchant-uploaded service photos. Confirm the production D1 database ID, then apply migrations remotely **without** the demo seed. The Worker custom domain and `APP_URL` are configured for `https://hotlah.site`.
+2. Add `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, and `FACEBOOK_CLIENT_SECRET` with `pnpm exec wrangler secret put <NAME>`; never commit their values. Google and Facebook use `https://hotlah.site/api/auth/callback/google` and `https://hotlah.site/api/auth/callback/facebook`. Verify both with real accounts. Apple remains hidden and unconfigured until an Apple Developer Program account is available.
+3. `hotlahmalaysia@gmail.com` is configured as the production administrator account. Connect a verified `hotlah.site` email sender and `RESEND_API_KEY`; exercise delivery/retry behavior. The Gmail address cannot be used as an arbitrary Resend sender. In-app notifications work locally. Native push and native Android/iOS apps are future work.
 4. Decide merchant subscription pricing and connect a payment provider with verified signed, idempotent webhooks before enabling live billing. The API refuses live billing activation today. No checkout is faked; subscription access fields are reserved for that integration.
 5. Verify merchant map pins and service-area coverage. Preview distances use approximate studio coordinates, not travel distance. New profiles need geographic validation before going public.
 6. Add production anti-abuse controls/rate limits, image/contact-detail moderation (including QR codes and social handles), appropriate privacy/terms/consent flows, account recovery/deletion, monitoring, backups and an accessibility pass with real devices. Plain-text phone numbers and URLs are screened, but that does not replace moderation.

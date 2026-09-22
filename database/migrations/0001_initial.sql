@@ -57,32 +57,10 @@ CREATE TABLE audit_log (id TEXT PRIMARY KEY, actor_id TEXT NOT NULL, action TEXT
 CREATE TABLE webhook_events (id TEXT PRIMARY KEY, created_at TEXT NOT NULL DEFAULT (datetime('now')));
 
 -- All gate and credit decisions execute inside the same D1 write transaction.
-CREATE TRIGGER booking_gate AFTER INSERT ON bookings BEGIN
-  UPDATE bookings SET locked = CASE
-    WHEN (SELECT subscribed FROM merchants WHERE id = NEW.merchant_id) = 1 THEN 0
-    WHEN (SELECT value FROM settings WHERE key = 'billing_enabled') != 'true' THEN 0
-    WHEN (SELECT COUNT(*) - COALESCE(SUM(credited),0) FROM acquisitions WHERE merchant_id = NEW.merchant_id)
-      >= CAST((SELECT value FROM settings WHERE key='allowance') AS INTEGER) THEN 1 ELSE 0 END
-    WHERE id = NEW.id;
-  INSERT INTO acquisitions(merchant_id,user_id,booking_id) VALUES(NEW.merchant_id,NEW.user_id,NEW.id) ON CONFLICT(merchant_id,user_id) DO NOTHING;
-  UPDATE bookings SET status='approved' WHERE id=NEW.id AND locked=0 AND (SELECT auto_approve FROM merchants WHERE id=NEW.merchant_id)=1;
-END;
+-- Keep each trigger on one LF-terminated physical line and parenthesize CASE expressions: D1's remote migration splitter can otherwise stop at the inner CASE END.
+CREATE TRIGGER booking_gate AFTER INSERT ON bookings BEGIN UPDATE bookings SET locked = (CASE WHEN (SELECT subscribed FROM merchants WHERE id = NEW.merchant_id) = 1 THEN 0 WHEN (SELECT value FROM settings WHERE key = 'billing_enabled') != 'true' THEN 0 WHEN (SELECT COUNT(*) - COALESCE(SUM(credited),0) FROM acquisitions WHERE merchant_id = NEW.merchant_id) >= CAST((SELECT value FROM settings WHERE key='allowance') AS INTEGER) THEN 1 ELSE 0 END) WHERE id = NEW.id; INSERT INTO acquisitions(merchant_id,user_id,booking_id) VALUES(NEW.merchant_id,NEW.user_id,NEW.id) ON CONFLICT(merchant_id,user_id) DO NOTHING; UPDATE bookings SET status='approved' WHERE id=NEW.id AND locked=0 AND (SELECT auto_approve FROM merchants WHERE id=NEW.merchant_id)=1; END;
 
-CREATE TRIGGER no_overlapping_approval BEFORE UPDATE OF status ON bookings
-WHEN NEW.status='approved' AND OLD.status!='approved' BEGIN
-  SELECT CASE WHEN EXISTS(SELECT 1 FROM bookings WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND id!=NEW.id AND status IN ('approved','completed') AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute)
-    THEN RAISE(ABORT,'SLOT_TAKEN') END;
-  SELECT CASE WHEN EXISTS(SELECT 1 FROM blocks WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute)
-    THEN RAISE(ABORT,'SLOT_BLOCKED') END;
-END;
-CREATE TRIGGER no_blocking_appointments BEFORE INSERT ON blocks BEGIN
-  SELECT CASE WHEN EXISTS(SELECT 1 FROM bookings WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND status='approved' AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute)
-    THEN RAISE(ABORT,'APPOINTMENT_EXISTS') END;
-END;
-CREATE TRIGGER cancellation_credit AFTER UPDATE OF status ON bookings
-WHEN NEW.status IN ('cancelled','declined') AND OLD.status NOT IN ('cancelled','declined') BEGIN
-  UPDATE acquisitions SET credited=1 WHERE booking_id=NEW.id AND credited=0;
-END;
-CREATE TRIGGER completed_reviews BEFORE INSERT ON reviews BEGIN
-  SELECT CASE WHEN (SELECT status FROM bookings WHERE id=NEW.booking_id)!='completed' THEN RAISE(ABORT,'NOT_COMPLETED') END;
-END;
+CREATE TRIGGER no_overlapping_approval BEFORE UPDATE OF status ON bookings WHEN NEW.status='approved' AND OLD.status!='approved' BEGIN SELECT (CASE WHEN EXISTS(SELECT 1 FROM bookings WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND id!=NEW.id AND status IN ('approved','completed') AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute) THEN RAISE(ABORT,'SLOT_TAKEN') END); SELECT (CASE WHEN EXISTS(SELECT 1 FROM blocks WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute) THEN RAISE(ABORT,'SLOT_BLOCKED') END); END;
+CREATE TRIGGER no_blocking_appointments BEFORE INSERT ON blocks BEGIN SELECT (CASE WHEN EXISTS(SELECT 1 FROM bookings WHERE merchant_id=NEW.merchant_id AND date=NEW.date AND status='approved' AND start_minute < NEW.end_minute AND end_minute > NEW.start_minute) THEN RAISE(ABORT,'APPOINTMENT_EXISTS') END); END;
+CREATE TRIGGER cancellation_credit AFTER UPDATE OF status ON bookings WHEN NEW.status IN ('cancelled','declined') AND OLD.status NOT IN ('cancelled','declined') BEGIN UPDATE acquisitions SET credited=1 WHERE booking_id=NEW.id AND credited=0; END;
+CREATE TRIGGER completed_reviews BEFORE INSERT ON reviews BEGIN SELECT (CASE WHEN (SELECT status FROM bookings WHERE id=NEW.booking_id)!='completed' THEN RAISE(ABORT,'NOT_COMPLETED') END); END;

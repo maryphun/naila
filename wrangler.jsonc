@@ -1,22 +1,53 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "hotlah",
-  "main": "./workers/app.ts",
-  "compatibility_date": "2026-09-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": "./build/client" },
-  "observability": { "enabled": true },
-  "vars": {
-    "DEMO_MODE": "false",
-    "APP_URL": "https://hotlah.example",
-    "EMAIL_FROM": "Hotlah <bookings@hotlah.example>"
-  },
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "hotlah",
-    "database_id": "00000000-0000-0000-0000-000000000001",
-    "migrations_dir": "database/migrations"
-  }],
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "hotlah-media" }],
-  "triggers": { "crons": ["*/15 * * * *"] }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hotlah",
+	"main": "./workers/app.ts",
+	"compatibility_date": "2026-09-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": "./build/client"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"workers_dev": false,
+	"routes": [
+		{
+			"pattern": "hotlah.site",
+			"custom_domain": true
+		}
+	],
+	"vars": {
+		"DEMO_MODE": "false",
+		"APP_URL": "https://hotlah.site",
+		"EMAIL_FROM": "Hotlah <bookings@hotlah.site>",
+		"ADMIN_EMAILS": "hotlahmalaysia@gmail.com"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "hotlah",
+			"database_id": "f86c07c6-bd81-41ea-a82e-8627ca9d229b",
+			"migrations_dir": "database/migrations"
+		},
+		{
+			"binding": "hotlah",
+			"database_name": "hotlah",
+			"database_id": "f86c07c6-bd81-41ea-a82e-8627ca9d229b",
+			"remote": true
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "hotlah-media"
+		}
+	],
+	"triggers": {
+		"crons": [
+			"*/15 * * * *"
+		]
+	}
 }

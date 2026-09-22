@@ -3,6 +3,7 @@ node_modules/
 build/
 .react-router/
 .wrangler/
+.tmp-d1-*/
 .dev.vars
 .env
 .env.*

@@ -5,6 +5,7 @@ BETTER_AUTH_SECRET=replace-with-a-random-secret-at-least-32-characters
 # GOOGLE_CLIENT_SECRET=
 # FACEBOOK_CLIENT_ID=
 # FACEBOOK_CLIENT_SECRET=
+# Apple is optional and should remain unset until the Apple Developer integration is ready.
 # APPLE_CLIENT_ID=
 # APPLE_CLIENT_SECRET=
 # RESEND_API_KEY=
