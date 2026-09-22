@@ -92,7 +92,9 @@ test('location picker stages selections, zooms and filters with a 1 km slider',a
   await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
   await page.getByRole('button',{name:'Kuala Lumpur & Selangor',exact:true}).click();
   await page.getByRole('button',{name:'Select Petaling',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Select Petaling',exact:true})).toHaveAttribute('aria-pressed','true');
+  const selectedDistrict=page.getByRole('button',{name:'Select Petaling',exact:true});
+  await expect(selectedDistrict).toHaveAttribute('aria-pressed','true');
+  await expect(selectedDistrict).toHaveCSS('outline-style','none');
   await page.getByRole('button',{name:'Zoom in',exact:true}).click();
   await expect(page.locator('.map-viewport svg')).toHaveAttribute('style',/150%/);
   await page.getByRole('button',{name:'Zoom out',exact:true}).click();
