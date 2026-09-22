@@ -1,6 +1,6 @@
 # Hotlah — design and architecture proposal
 
-Status: cream, charcoal, and yellow visual direction and the first four mobile concepts approved by the user; see design/mobile-v1/README.md. Architecture and remaining detailed flows remain recommendations for review, not an approved implementation specification. Prepared on 2026-09-21. Confirmed requirements are in PRODUCT.md. No application code has been written.
+Status: design approved and subsequent implementation authorized by the user. This document preserves the original proposal; the implemented architecture and remaining launch prerequisites are recorded in README.md, and actual visual tokens in DESIGN.md. Prepared on 2026-09-21. Confirmed product requirements are in PRODUCT.md.
 
 ## Recommended design language
 

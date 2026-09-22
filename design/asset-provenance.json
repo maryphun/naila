@@ -1,0 +1,22 @@
+{
+  "generator": "OpenAI image_gen",
+  "purpose": "Illustrative fictional demo portfolio photos, not real merchant work",
+  "assets": [
+    {
+      "key": "french",
+      "prompt": "Create a photorealistic editorial manicure photograph, landscape 4:3 composition, tightly framed relaxed feminine hand with five anatomically correct fingers, short almond nails, translucent nude-pink gel base and very fine elegant white French tips, natural cuticles, sleeve of warm cream knit, neutral warm ivory background, soft natural window light, subtle realistic skin detail. Premium independent nailist portfolio mood, minimalist and believable, generous clean background near upper edge. This is an illustrative product photograph for Hotlah's demo service catalogue, not a real merchant portfolio. No text, no logo, no jewellery, no UI, no watermark, no extra hands."
+    },
+    {
+      "key": "cat-eye",
+      "prompt": "Create a photorealistic editorial manicure photograph, landscape 4:3 composition, close up of a relaxed feminine hand with anatomically correct fingers and medium almond champagne-taupe magnetic cat-eye gel nails, luminous fine satin shimmer across each nail, natural cuticles, warm ivory silk fabric underneath, soft angled daylight, muted beige editorial palette. Premium independent nailist portfolio, visually consistent with warm minimalist cream/yellow Hotlah UI. Illustrative demo service photography only. No text, no watermark, no UI, no logo, no jewellery, no extra fingers."
+    },
+    {
+      "key": "cherry",
+      "prompt": "Create a photorealistic editorial manicure photograph, landscape 4:3 composition, close crop of a relaxed feminine hand with anatomically correct fingers, short rounded blush pink manicure with tiny hand-painted burgundy cherry motifs on two accent nails and simple pale pink on other nails, clean cuticles, hand on cream cotton shirt, natural warm daylight, polished independent nail studio photography, tactile authentic skin, sophisticated playful detailing. Illustrative demo portfolio for Hotlah app. No text, no UI, no watermark, no logos, no jewellery, no extra fingers."
+    },
+    {
+      "key": "glazed",
+      "prompt": "Create a photorealistic editorial manicure photograph, landscape 4:3 composition, close up of a graceful relaxed feminine hand with anatomically correct fingers and softly squared short nails, subtle pearl white glazed-donut chrome manicure with translucent milky base, delicate reflective sheen, natural cuticles, warm off-white linen background, soft natural window light, beautifully restrained independent nailist portfolio photograph. Illustration for Hotlah demo catalogue. No text, no logo, no UI, no jewellery, no watermark, no extra fingers."
+    }
+  ]
+}

@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T02:24:58.275Z",
+  "title": "Design System: Hotlah",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Ivory",
+        "tonalRamp": [
+          "oklch(15.00% 0.0132 102.01)",
+          "oklch(26.43% 0.0132 102.01)",
+          "oklch(37.86% 0.0132 102.01)",
+          "oklch(49.29% 0.0132 102.01)",
+          "oklch(60.71% 0.0132 102.01)",
+          "oklch(72.14% 0.0132 102.01)",
+          "oklch(83.57% 0.0132 102.01)",
+          "oklch(95.00% 0.0132 102.01)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Charcoal",
+        "tonalRamp": [
+          "oklch(15.00% 0.0109 107.13)",
+          "oklch(26.43% 0.0109 107.13)",
+          "oklch(37.86% 0.0109 107.13)",
+          "oklch(49.29% 0.0109 107.13)",
+          "oklch(60.71% 0.0109 107.13)",
+          "oklch(72.14% 0.0109 107.13)",
+          "oklch(83.57% 0.0109 107.13)",
+          "oklch(95.00% 0.0109 107.13)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Quiet Olive Grey",
+        "tonalRamp": [
+          "oklch(15.00% 0.0154 111.57)",
+          "oklch(26.43% 0.0154 111.57)",
+          "oklch(37.86% 0.0154 111.57)",
+          "oklch(49.29% 0.0154 111.57)",
+          "oklch(60.71% 0.0154 111.57)",
+          "oklch(72.14% 0.0154 111.57)",
+          "oklch(83.57% 0.0154 111.57)",
+          "oklch(95.00% 0.0154 111.57)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Soft Divider",
+        "tonalRamp": [
+          "oklch(15.00% 0.0189 113.37)",
+          "oklch(26.43% 0.0189 113.37)",
+          "oklch(37.86% 0.0189 113.37)",
+          "oklch(49.29% 0.0189 113.37)",
+          "oklch(60.71% 0.0189 113.37)",
+          "oklch(72.14% 0.0189 113.37)",
+          "oklch(83.57% 0.0189 113.37)",
+          "oklch(95.00% 0.0189 113.37)"
+        ]
+      },
+      "yellow": {
+        "role": "primary",
+        "displayName": "Warm Yellow",
+        "tonalRamp": [
+          "oklch(15.00% 0.1689 92.29)",
+          "oklch(26.43% 0.1689 92.29)",
+          "oklch(37.86% 0.1689 92.29)",
+          "oklch(49.29% 0.1689 92.29)",
+          "oklch(60.71% 0.1689 92.29)",
+          "oklch(72.14% 0.1689 92.29)",
+          "oklch(83.57% 0.1689 92.29)",
+          "oklch(95.00% 0.1689 92.29)"
+        ]
+      },
+      "green": {
+        "role": "semantic",
+        "displayName": "Confirmation Green",
+        "tonalRamp": [
+          "oklch(15.00% 0.0814 169.21)",
+          "oklch(26.43% 0.0814 169.21)",
+          "oklch(37.86% 0.0814 169.21)",
+          "oklch(49.29% 0.0814 169.21)",
+          "oklch(60.71% 0.0814 169.21)",
+          "oklch(72.14% 0.0814 169.21)",
+          "oklch(83.57% 0.0814 169.21)",
+          "oklch(95.00% 0.0814 169.21)"
+        ]
+      },
+      "yellow-hover": {
+        "role": "primary",
+        "displayName": "Pressed Yellow",
+        "tonalRamp": [
+          "oklch(15.00% 0.1699 91.50)",
+          "oklch(26.43% 0.1699 91.50)",
+          "oklch(37.86% 0.1699 91.50)",
+          "oklch(49.29% 0.1699 91.50)",
+          "oklch(60.71% 0.1699 91.50)",
+          "oklch(72.14% 0.1699 91.50)",
+          "oklch(83.57% 0.1699 91.50)",
+          "oklch(95.00% 0.1699 91.50)"
+        ]
+      },
+      "quiet-hover": {
+        "role": "neutral",
+        "displayName": "Quiet Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0199 106.77)",
+          "oklch(26.43% 0.0199 106.77)",
+          "oklch(37.86% 0.0199 106.77)",
+          "oklch(49.29% 0.0199 106.77)",
+          "oklch(60.71% 0.0199 106.77)",
+          "oklch(72.14% 0.0199 106.77)",
+          "oklch(83.57% 0.0199 106.77)",
+          "oklch(95.00% 0.0199 106.77)"
+        ]
+      },
+      "pending": {
+        "role": "semantic",
+        "displayName": "Pending Ochre",
+        "tonalRamp": [
+          "oklch(15.00% 0.0785 89.27)",
+          "oklch(26.43% 0.0785 89.27)",
+          "oklch(37.86% 0.0785 89.27)",
+          "oklch(49.29% 0.0785 89.27)",
+          "oklch(60.71% 0.0785 89.27)",
+          "oklch(72.14% 0.0785 89.27)",
+          "oklch(83.57% 0.0785 89.27)",
+          "oklch(95.00% 0.0785 89.27)"
+        ]
+      },
+      "error": {
+        "role": "semantic",
+        "displayName": "Error Rust",
+        "tonalRamp": [
+          "oklch(15.00% 0.1294 30.04)",
+          "oklch(26.43% 0.1294 30.04)",
+          "oklch(37.86% 0.1294 30.04)",
+          "oklch(49.29% 0.1294 30.04)",
+          "oklch(60.71% 0.1294 30.04)",
+          "oklch(72.14% 0.1294 30.04)",
+          "oklch(83.57% 0.1294 30.04)",
+          "oklch(95.00% 0.1294 30.04)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Discovery Display",
+        "purpose": "Desktop discovery heading; phone and wide variants are documented in DESIGN.md."
+      },
+      "headline": {
+        "displayName": "Section Headline",
+        "purpose": "Primary section headings."
+      },
+      "title": {
+        "displayName": "Item Title",
+        "purpose": "Cards, lists and compact headings."
+      },
+      "body": {
+        "displayName": "Descriptive Body",
+        "purpose": "Descriptions, with smaller contextual phone variants."
+      },
+      "label": {
+        "displayName": "Field Label",
+        "purpose": "Persistent compact field labels."
+      },
+      "button": {
+        "displayName": "Action Label",
+        "purpose": "Primary and secondary pill controls."
+      },
+      "input-phone": {
+        "displayName": "Phone Input",
+        "purpose": "Final 16px editable field, search and composer text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "dialog",
+        "value": "0 20px 80px #25251f30",
+        "purpose": "Raised modal over the charcoal overlay."
+      },
+      {
+        "name": "toast",
+        "value": "0 8px 28px #25251f26",
+        "purpose": "Transient confirmation feedback."
+      }
+    ],
+    "motion": [
+      {
+        "name": "button",
+        "value": "background .16s ease, transform .16s ease",
+        "purpose": "Brief hover and one-pixel press feedback."
+      },
+      {
+        "name": "photo",
+        "value": "transform .35s cubic-bezier(.2,.7,.3,1)",
+        "purpose": "Service photo zoom to scale(1.025) on hover."
+      },
+      {
+        "name": "fade-in",
+        "value": "opacity .3 to 1, .16s ease-out",
+        "purpose": "Dialog appearance."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation:none; transition:none; scroll-behavior:auto",
+        "purpose": "Applied when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-phone",
+        "value": "max-width:359px"
+      },
+      {
+        "name": "phone",
+        "value": "max-width:700px"
+      },
+      {
+        "name": "tablet",
+        "value": "max-width:1000px"
+      },
+      {
+        "name": "wide-desktop",
+        "value": "min-width:1500px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Outlined pill action; source button sizing and interaction states.",
+      "html": "<button class=\"ds-button-primary\">Request appointment<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-button-primary{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);color:var(--ink,#25251f);min-height:46px;padding:11px 20px;border:1px solid var(--ink,#25251f);border-radius:100px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:750;line-height:1.5;cursor:pointer;transition:background .16s ease,transform .16s ease;background:var(--yellow,#ffd331)}.ds-button-primary:hover:not(:disabled){background:#f7c91b}.ds-button-primary:active:not(:disabled){transform:translateY(1px)}.ds-button-primary:disabled{cursor:not-allowed;opacity:.45}.ds-button-primary:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-button-primary{font-size:12px}}@media(prefers-reduced-motion:reduce){:host *{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined pill action; source button sizing and interaction states.",
+      "html": "<button class=\"ds-button-secondary\">Back to my workspace<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-button-secondary{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);color:var(--ink,#25251f);min-height:46px;padding:11px 20px;border:1px solid var(--ink,#25251f);border-radius:100px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:750;line-height:1.5;cursor:pointer;transition:background .16s ease,transform .16s ease;background:transparent}.ds-button-secondary:hover:not(:disabled){background:#eeeedf}.ds-button-secondary:active:not(:disabled){transform:translateY(1px)}.ds-button-secondary:disabled{cursor:not-allowed;opacity:.45}.ds-button-secondary:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-button-secondary{font-size:12px}}@media(prefers-reduced-motion:reduce){:host *{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Underlined compact action from the shared UI.",
+      "html": "<button class=\"ds-text-button\">Try again <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-text-button{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750;min-height:44px;color:var(--ink,#25251f);background:none;border:0;text-decoration:underline;text-underline-offset:5px;cursor:pointer}.ds-text-button:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "Circular close/header control with source hover feedback.",
+      "html": "<button class=\"ds-icon-button\" aria-label=\"Close\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m18 6-12 12M6 6l12 12\"/></svg></button>",
+      "css": ".ds-icon-button{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:var(--ink,#25251f);cursor:pointer}.ds-icon-button:hover{background:#eeeedf}.ds-icon-button:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}"
+    },
+    {
+      "name": "Labeled Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Persistent label with responsive 16px editable phone text.",
+      "html": "<label class=\"ds-field\">Message<input type=\"text\" placeholder=\"Add a note for your nailist\"/></label>",
+      "css": ".ds-field{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);display:flex;flex-direction:column;gap:8px;font-size:12px;font-weight:650;color:var(--ink,#25251f)}.ds-field input{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);border:1px solid var(--line,#dcded0);border-radius:10px;padding:12px 14px;background:transparent;color:var(--ink,#25251f);min-height:46px;font-size:14px;line-height:1.5;caret-color:var(--green,#17644e)}.ds-field input::placeholder{color:#737367;opacity:1}.ds-field input:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-field{font-size:11px}.ds-field input{font-size:16px;padding:11px 12px}}"
+    },
+    {
+      "name": "Style Chips",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "Default and selected style choices, with the final phone target size.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-selected\" aria-pressed=\"true\">All styles</button><button class=\"ds-chip\" aria-pressed=\"false\">French</button></div>",
+      "css": ".ds-chips{display:flex;flex-wrap:wrap;gap:8px}.ds-chip{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);color:var(--ink,#25251f);padding:9px 18px;min-height:41px;border:1px solid var(--line,#dcded0);border-radius:99px;font-size:12px;white-space:nowrap;background:transparent;transition:background .15s;cursor:pointer}.ds-chip.ds-selected{background:var(--yellow,#ffd331);border-color:var(--ink,#25251f);font-weight:750}.ds-chip:hover{border-color:var(--ink,#25251f)}.ds-chip:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-chip{font-size:11px;padding:8px 15px;min-height:44px}}@media(prefers-reduced-motion:reduce){:host *{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Phone Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-phone",
+      "description": "Four equal destinations with an active yellow icon pill. Shown in normal flow for the component preview.",
+      "html": "<nav class=\"ds-navigation\" aria-label=\"Main navigation\"><a class=\"ds-nav-link ds-active\" href=\"/\" aria-current=\"page\"><span class=\"ds-nav-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg></span><span>Explore</span></a><a class=\"ds-nav-link\" href=\"/bookings\"><span class=\"ds-nav-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18\"/></svg></span><span>Bookings</span></a><a class=\"ds-nav-link\" href=\"/messages\"><span class=\"ds-nav-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5a8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z\"/></svg></span><span>Messages</span></a><a class=\"ds-nav-link\" href=\"/account\"><span class=\"ds-nav-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg></span><span>Account</span></a></nav>",
+      "css": ".ds-navigation{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:9px 10px calc(8px + env(safe-area-inset-bottom));background:var(--paper,#faf9ef);border-top:1px solid var(--ink,#25251f)}.ds-nav-link{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;font-size:9px;color:#717365;min-height:46px;text-decoration:none}.ds-nav-icon{width:42px;height:30px;display:flex;justify-content:center;align-items:center;border-radius:99px}.ds-nav-link.ds-active{color:var(--ink,#25251f);font-weight:750}.ds-active .ds-nav-icon{background:var(--yellow,#ffd331)}.ds-nav-link:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}"
+    },
+    {
+      "name": "Service Card",
+      "kind": "card",
+      "refersTo": "service-card",
+      "description": "Implemented photography-led card. The bundled image and copy are identified preview examples; the image path resolves on the app origin.",
+      "html": "<article class=\"ds-service-card\"><div class=\"ds-service-photo\"><img src=\"/images/french.webp\" alt=\"Example French nail photograph\"/><span class=\"ds-photo-label\">Example content</span></div><div class=\"ds-service-content\"><div class=\"ds-service-meta\"><span>French</span><span>75 min</span></div><a class=\"ds-service-title\" href=\"/\"><h3>French gel manicure</h3><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></a><p class=\"ds-merchant\">Example studio</p><p class=\"ds-location\">Petaling Jaya</p><p class=\"ds-next\">Next request · Example time</p><div class=\"ds-service-bottom\"><strong>RM 88</strong><span>Pay at appointment</span></div></div></article>",
+      "css": ".ds-service-card{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);border:1px solid var(--ink,#25251f);border-radius:var(--radius,14px);overflow:hidden;min-width:0;background:var(--paper,#faf9ef);color:var(--ink,#25251f)}.ds-service-photo{position:relative;aspect-ratio:4/3;overflow:hidden}.ds-service-photo img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s cubic-bezier(.2,.7,.3,1)}.ds-service-card:hover img{transform:scale(1.025)}.ds-photo-label{position:absolute;bottom:13px;left:13px;padding:5px 10px;background:var(--paper,#faf9ef);border-radius:99px;font-size:10px;font-weight:700}.ds-service-content{padding:18px 20px 0}.ds-service-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted,#68695f);margin-bottom:7px}.ds-service-title{display:flex;align-items:center;justify-content:space-between;gap:8px;color:inherit;text-decoration:none}.ds-service-title h3{margin:0;font-size:19px;line-height:1.4;letter-spacing:-.02em;font-weight:750}.ds-merchant{font-size:12px;margin:7px 0 0;line-height:1.7}.ds-location{color:var(--muted,#68695f);font-size:11px;margin:5px 0 0;line-height:1.7}.ds-next{font-size:11px;color:var(--green,#17644e);margin:12px 0 0;display:flex;align-items:center;gap:6px;line-height:1.7}.ds-next::before{content:'';width:5px;height:5px;background:currentColor;border-radius:50%}.ds-service-bottom{border-top:1px solid var(--line,#dcded0);display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 0}.ds-service-bottom strong{font-size:18px;font-weight:750;letter-spacing:-.02em}.ds-service-bottom span{font-size:10px;color:var(--muted,#68695f)}.ds-service-title:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-service-photo{aspect-ratio:1.55}.ds-service-content{padding:17px 18px 0}.ds-location{font-size:10px}}@media(prefers-reduced-motion:reduce){:host *{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Availability Slots",
+      "kind": "custom",
+      "refersTo": "availability-slot",
+      "description": "Available, selected and disabled appointment-time states.",
+      "html": "<div class=\"ds-slots\"><button class=\"ds-slot\">10:00</button><button class=\"ds-slot ds-selected\" aria-pressed=\"true\">11:00</button><button class=\"ds-slot\" disabled>12:00</button></div>",
+      "css": ".ds-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.ds-slot{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);font-variant-numeric:tabular-nums;color:var(--ink,#25251f);background:transparent;width:100%;padding:10px 0;border:1px solid var(--line,#dcded0);border-radius:8px;font-size:11px;min-height:40px;cursor:pointer}.ds-slot.ds-selected{background:var(--yellow,#ffd331);border-color:var(--ink,#25251f);font-weight:800}.ds-slot:disabled{border-color:transparent;color:#828475;opacity:.7;cursor:not-allowed}.ds-slot:focus-visible{outline:3px solid var(--green,#17644e);outline-offset:4px}@media(max-width:700px){.ds-slot{font-size:12px;min-height:43px}}"
+    },
+    {
+      "name": "Appointment Status",
+      "kind": "custom",
+      "refersTo": "status-pending",
+      "description": "Written status plus a matching dot; pending and confirmed remain distinct.",
+      "html": "<div class=\"ds-status-group\"><span class=\"ds-status\"><span></span>Pending approval</span><span class=\"ds-status ds-approved\"><span></span>Confirmed</span></div>",
+      "css": ".ds-status-group{display:flex;flex-wrap:wrap;gap:16px}.ds-status{font-family:var(--font-sans,'Manrope Variable','Noto Sans SC',sans-serif);display:inline-flex;align-items:center;gap:5px;color:#69551c;font-size:10px;line-height:1.5}.ds-status>span{width:5px;height:5px;border-radius:50%;background:currentColor}.ds-status.ds-approved{color:var(--green,#17644e)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Warm, professional simplicity",
+    "overview": "A minimalist, professional marketplace in warm ivory, charcoal and yellow. Manrope, fine outlines and natural nail photography give the interface a clean, approachable character. The approved direction is preserved across customer and merchant screens.\n\nSurfaces are flat and restrained, with generous separation between groups and compact supporting metadata. Yellow identifies actions and selections; green communicates availability, confirmation and keyboard focus. This document records the implemented system, including the final responsive overrides in app/styles.css.",
+    "keyCharacteristics": [
+      "Warm ivory canvas with fine charcoal outlines.",
+      "Manrope typography with a Simplified Chinese fallback.",
+      "Rounded controls, clear selection states and photography-led service cards.",
+      "Phone-first interaction with usable desktop grids."
+    ],
+    "rules": [
+      {
+        "name": "The Selection Rule",
+        "body": "Use yellow for primary actions and selected controls; keep normal reading surfaces quiet.",
+        "section": "colors"
+      },
+      {
+        "name": "The Phone Input Rule",
+        "body": "Editable phone fields use 16px text, even when their labels and placeholders are smaller.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "Cards use outlines and spacing for separation; shadows belong to transient overlays and notifications.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the implemented paper, ink and yellow tokens across customer and merchant screens.",
+      "Do keep editable phone inputs at 16px and preserve the enlarged frequent touch controls.",
+      "Do show status in words as well as color.",
+      "Do use real nail photography for merchant work and identify preview imagery and example content honestly.",
+      "Do respect reduced-motion preferences and keep keyboard focus visible."
+    ],
+    "donts": [
+      "Don't replace the approved restrained identity with mascots, gradients or ornamental effects.",
+      "Don't present pending requests as confirmed appointments.",
+      "Don't remove prices, location or availability from service comparison.",
+      "Don't promote old mockup measurements over the final responsive CSS."
+    ]
+  }
+}

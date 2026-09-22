@@ -1,0 +1,10 @@
+import { readFileSync,writeFileSync,mkdirSync } from 'node:fs';
+const source=JSON.parse(readFileSync('database/districts-source.geojson','utf8'));
+const features=source.features.filter(f=>['Selangor','W.P. Kuala Lumpur'].includes(f.properties.state));
+const points=features.flatMap(f=>f.geometry.type==='Polygon'?f.geometry.coordinates.flat():f.geometry.coordinates.flat(2));
+const west=Math.min(...points.map(p=>p[0])),east=Math.max(...points.map(p=>p[0])),north=Math.max(...points.map(p=>p[1])),south=Math.min(...points.map(p=>p[1]));
+const scale=350/(east-west),height=(north-south)*scale+30;
+const project=p=>[15+(p[0]-west)*scale,15+(north-p[1])*scale];
+const regions=features.map(f=>{const polygons=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;const coords=polygons.flat(2);const center=[coords.reduce((a,p)=>a+p[0],0)/coords.length,coords.reduce((a,p)=>a+p[1],0)/coords.length];return {name:f.properties.district.replace('W.P. ','').replace('Ulu','Hulu'),path:polygons.map(p=>p.map(r=>r.map((point,i)=>`${i?'L':'M'}${project(point).map(n=>n.toFixed(1)).join(',')}`).join('')+'Z').join('')).join(''),center:project(center)};});
+mkdirSync('app/data',{recursive:true});
+writeFileSync('app/data/regions.json',JSON.stringify({width:380,height:Math.ceil(height),regions,source:'DOSM Malaysia, administrative_2_district.geojson',url:'https://github.com/dosm-malaysia/data-open/blob/main/datasets/geodata/administrative_2_district.geojson'}));

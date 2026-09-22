@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Confirmed product record from the discovery conversation. The cream, charcoal, and yellow visual direction and first four mobile screen concepts are approved; see design/mobile-v1/README.md. Further screens and architecture recommendations in HOTLAH-PROPOSAL.md remain subject to review. Development has not been authorized for this phase.
+Confirmed product record from the discovery conversation. The cream, charcoal, and yellow visual direction and first four mobile screen concepts are approved; see design/mobile-v1/README.md. The user subsequently authorized implementation ("good! do it, make me proud"). A working local responsive-web MVP is now implemented. See README.md for setup, verified scope, and launch prerequisites.
 
 ## Platform
 
@@ -12,7 +12,7 @@ Responsive web first, followed by Android and then iOS. Phone usability is the p
 
 ## Stack
 
-The user normally uses React, Tailwind CSS, and Cloudflare and requested recommendations for this product. Final architecture is awaiting review. Operating budget: JPY 10,000 per month. Scalability matters.
+Implemented stack: React, React Router framework SSR, Tailwind CSS, Cloudflare Workers, D1, R2, Hono, Drizzle for Better Auth, and Radix accessible dialogs. Operating budget: JPY 10,000 per month. No paid resources or deployment were created. SQLite transactions and triggers enforce booking invariants; separate booking infrastructure is unnecessary for the initial solo-nailist scope.
 
 ## Users
 

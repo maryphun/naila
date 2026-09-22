@@ -1,0 +1,12 @@
+DEMO_MODE=true
+APP_URL=http://127.0.0.1:5173
+BETTER_AUTH_SECRET=replace-with-a-random-secret-at-least-32-characters
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# FACEBOOK_CLIENT_ID=
+# FACEBOOK_CLIENT_SECRET=
+# APPLE_CLIENT_ID=
+# APPLE_CLIENT_SECRET=
+# RESEND_API_KEY=
+# EMAIL_FROM=Hotlah <bookings@your-verified-domain>
+# ADMIN_EMAILS=your-email@example.com

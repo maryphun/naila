@@ -1,0 +1,8 @@
+import { useState } from 'react';
+import { Link } from 'react-router';
+import { useApi } from '../lib/api';
+import { useApp } from '../lib/context';
+import type { Booking } from '../lib/types';
+import { AuthRequired,Loading,ErrorNotice,Empty } from '../components/ui';
+import { BookingCard } from '../components/booking-card';
+export default function Bookings(){const {session,t}=useApp();const [tab,setTab]=useState('upcoming');const {data,error,loading,refresh}=useApi<{bookings:Booking[]}>(session.user?'/api/bookings':null,15000);if(!session.user)return <AuthRequired/>;const bookings=data?.bookings.filter(b=>tab==='upcoming'?['pending','approved'].includes(b.status):!['pending','approved'].includes(b.status))??[];return <div className="narrow-page"><header className="page-intro"><h1>{t('Your bookings','我的预约')}</h1><p>{t('A little time, just for you.','留一点时间，好好宠爱自己。')}</p></header><div className="tabs"><button className={tab==='upcoming'?'active':''} onClick={()=>setTab('upcoming')}>{t('Upcoming','即将到来')}</button><button className={tab==='history'?'active':''} onClick={()=>setTab('history')}>{t('History','历史记录')}</button></div>{error&&<ErrorNotice message={error} retry={refresh}/>} {loading?<Loading/>:bookings.length?<div className="booking-list">{bookings.map(b=><BookingCard key={b.id} booking={b}/>)}</div>:<Empty title={t('Room for something lovely','给美好留个位置')} description={t(tab==='upcoming'?'Find a style you love and request your first appointment.':'Your past appointments will appear here.',tab==='upcoming'?'找到喜欢的款式，预约下一次美甲。':'过往预约将在这里显示。')} action={<Link className="button primary" to="/">{t('Explore nailists','发现美甲师')}</Link>}/>}</div>;}
