@@ -166,6 +166,7 @@
 .region-map .map-viewport svg{display:block;max-height:none;height:auto}
 .region-map path{fill:var(--paper);stroke:#929582;stroke-width:.9;vector-effect:non-scaling-stroke;cursor:pointer;outline:none;transition:fill .15s}
 .region-map path.selected{fill:var(--yellow);stroke:var(--ink);stroke-width:1.5}
+.region-map path.selected-outline{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:none}
 .region-map path:focus-visible{fill:var(--yellow);stroke:var(--green);stroke-width:3;outline:none}
 .district-label{font-size:10px;font-weight:650;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:2;stroke-linejoin:round}
 .map-water{font-size:9px;letter-spacing:.08em;fill:var(--muted)}

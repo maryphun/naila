@@ -97,6 +97,10 @@ test('location picker stages selections, zooms and filters with a 1 km slider',a
   const selectedDistrict=page.getByRole('button',{name:'Select Petaling',exact:true});
   await expect(selectedDistrict).toHaveAttribute('aria-pressed','true');
   await expect(selectedDistrict).toHaveCSS('outline-style','none');
+  const selectedOutline=page.locator('.region-map path.selected-outline');
+  await expect(selectedOutline).toHaveCount(1);
+  expect(await selectedOutline.getAttribute('d')).toBe(await selectedDistrict.getAttribute('d'));
+  expect(await selectedOutline.evaluate(path=>path===path.parentElement?.lastElementChild)).toBe(true);
   await page.getByRole('button',{name:'Zoom in',exact:true}).click();
   await expect(page.locator('.map-viewport svg')).toHaveAttribute('style',/150%/);
   await page.getByRole('button',{name:'Zoom out',exact:true}).click();
