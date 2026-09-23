@@ -2,6 +2,7 @@ import { index, route, type RouteConfig } from '@react-router/dev/routes';
 export default [
   index('routes/explore.tsx'),
   route('services/:id','routes/service.tsx'),
+  route('nailists/:id','routes/nailist.tsx'),
   route('bookings','routes/bookings.tsx'),
   route('bookings/:id','routes/conversation.tsx'),
   route('messages','routes/messages.tsx'),

@@ -20,7 +20,7 @@ export function NailStylePicker({ open, value, onChoose, onOpenChange }: {
         const label = lang === 'zh' ? STYLE_ZH[style] : style;
         return <li key={style}>
           <button type="button" className="nail-style-option" aria-label={label} aria-pressed={value === style} onClick={() => onChoose(style)}>
-            <img src={example.image} width={96} height={96} alt={t(example.en, example.zh)} decoding="async"/>
+            <img src={example.image} width={600} height={300} alt={t(example.en, example.zh)} decoding="async"/>
             <strong>{label}</strong>
             {value === style && <Check size={16} aria-hidden="true"/>}
           </button>

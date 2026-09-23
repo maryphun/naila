@@ -84,6 +84,26 @@ api.get('/api/catalog', async c => {
   });
   return c.json({ services, demo: c.get('demo') });
 });
+api.get('/api/merchants/:id', async c => {
+  const merchant = await c.env.DB.prepare('SELECT * FROM merchants WHERE id=? AND approved=1').bind(c.req.param('id')).first<Record<string,unknown>>();
+  if (!merchant) throw new HTTPException(404, {message:'This nailist is not available.'});
+  const services = await c.env.DB.prepare(`${publicCatalogueSql} AND m.id=? ORDER BY s.promoted DESC,s.rowid`).bind(c.req.param('id')).all<Service>();
+  if (!services.results.length) throw new HTTPException(404, {message:'This nailist is not available.'});
+  const first=localDate(),last=localDate(13);
+  const occupied=await c.env.DB.prepare(`SELECT date,start_minute,end_minute FROM bookings WHERE merchant_id=? AND status IN ('approved','completed') AND date BETWEEN ? AND ? UNION ALL SELECT date,start_minute,end_minute FROM blocks WHERE merchant_id=? AND date BETWEEN ? AND ?`).bind(c.req.param('id'),first,last,c.req.param('id'),first,last).all<{date:string;start_minute:number;end_minute:number}>();
+  const schedule=JSON.parse(String(merchant.hours));
+  const menu=services.results.map(service=>{
+    let next_available:Service['next_available']=null;
+    for(let offset=0;offset<14&&!next_available;offset++){
+      const date=localDate(offset);
+      const slot=computeSlots(schedule,date,service.duration,service.buffer,occupied.results.filter(b=>b.date===date)).find(s=>s.available);
+      if(slot)next_available={date,minute:slot.minute};
+    }
+    return {...service,next_available};
+  });
+  const reviews=await c.env.DB.prepare(`SELECT r.id,r.rating,r.body,r.created_at,u.name FROM reviews r JOIN bookings b ON b.id=r.booking_id JOIN user u ON u.id=b.user_id WHERE b.merchant_id=? ORDER BY r.created_at DESC LIMIT 20`).bind(c.req.param('id')).all();
+  return c.json({merchant:publicMerchant(merchant),services:menu,reviews:reviews.results});
+});
 api.get('/api/services/:id', async c => {
   const service = await c.env.DB.prepare(`${publicCatalogueSql} AND s.id=?`).bind(c.req.param('id')).first<Service>();
   if (!service) throw new HTTPException(404, {message:'This service is not available.'});
