@@ -12,8 +12,7 @@ export function NailStylePicker({ open, value, onChoose, onOpenChange }: {
 }) {
   const { t, lang } = useApp();
   return <Modal open={open} onOpenChange={onOpenChange} className="nail-style-dialog"
-    title={t('What’s your nail mood?', '您喜欢什么美甲风格？')}
-    description={t('Tap a photo to explore a style. AI-generated examples are inspiration, not merchant work.', '点击图片选择款式。AI 生成示例仅供灵感参考，并非商家作品。')}>
+    title={t('What’s your nail mood?', '您喜欢什么美甲风格？')}>
     {open && <ul className="nail-style-options" aria-label={t('Nail style examples', '美甲款式示例')}>
       {STYLES.map(style => {
         const example = STYLE_EXAMPLES[style];

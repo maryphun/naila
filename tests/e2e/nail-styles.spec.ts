@@ -10,6 +10,7 @@ test('photo picker selects new styles, preserves dismissal and resets saved filt
   for (const style of ['Korean', 'Chinese', 'Mirror', 'Magnet']) {
     await trigger.click();
     await expect(dialog).toBeVisible();
+    await expect(dialog.locator('.dialog-description')).toHaveCount(0);
     await expect(dialog.locator('img')).toHaveCount(STYLES.length);
     await expect.poll(() => dialog.locator('img').evaluateAll(images =>
       images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)
