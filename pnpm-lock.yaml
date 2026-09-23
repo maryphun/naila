@@ -50,6 +50,9 @@ importers:
       react-router:
         specifier: ^8.4.0
         version: 8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      timepicker-ui:
+        specifier: 4.4.0
+        version: 4.4.0
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -2282,6 +2285,9 @@ packages:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
 
+  timepicker-ui@4.4.0:
+    resolution: {integrity: sha512-+ncFBnZYrBxk8viJ6eZv2jZ5UeMnVuxtOBecHZBxpE+zgn9zpZsStXLcYVDAvBPnECIEcQJwvZ60s6/qEt08jQ==}
+
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
 
@@ -4202,6 +4208,8 @@ snapshots:
   tailwindcss@4.3.3: {}
 
   tapable@2.3.3: {}
+
+  timepicker-ui@4.4.0: {}
 
   tiny-invariant@1.3.3: {}
 

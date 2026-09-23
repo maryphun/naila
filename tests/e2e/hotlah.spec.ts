@@ -5,13 +5,50 @@ test('customer can browse, filter, save and send a request',async({page})=>{
  await page.goto('/');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');await expect(page.getByRole('heading',{name:'Find your next set.'})).toBeVisible();
  await page.getByRole('button',{name:'Cat eye',exact:true}).click();await expect(page.locator('.service-card')).toHaveCount(1);
  await page.getByRole('button',{name:'All styles',exact:true}).click();await page.getByRole('button',{name:'Save service'}).first().click();
- await page.getByRole('link',{name:'French gel manicure',exact:true}).click();await expect(page.getByRole('heading',{name:'Find your time'})).toBeVisible();
- await page.locator('.availability-table button:not([disabled])').first().click();await page.getByRole('button',{name:'Request',exact:true}).click();
+ await page.getByRole('link',{name:'French gel manicure',exact:true}).click();await expect(page.getByRole('heading',{name:'Choose your day'})).toBeVisible();
+ await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await expect(page.locator('.tp-ui-wrapper.hotlah-booking-clock')).toBeVisible();
+ await page.locator('.tp-ui-wrapper.hotlah-booking-clock .tp-ui-ok-btn').click();
+ await expect(page.getByRole('button',{name:'Request',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Request',exact:true}).click();
  await page.getByRole('button',{name:'Explore as a customer'}).click();await page.getByRole('button',{name:'Request',exact:true}).click();
  await page.getByLabel('A note for your nailist (optional)').fill('I would love a shorter almond shape.');await page.getByRole('button',{name:'Send booking request'}).click();
  await expect(page.getByText('Pending approval',{exact:true})).toBeVisible();await expect(page.getByText('I would love a shorter almond shape.')).toBeVisible();
  await page.getByRole('textbox',{name:'Message',exact:true}).fill('Thank you, looking forward to it.');await page.getByRole('button',{name:'Send message'}).click();await expect(page.getByText('Thank you, looking forward to it.')).toBeVisible();
  await page.getByRole('button',{name:'Cancel booking',exact:true}).click();await page.getByRole('button',{name:'Yes, cancel booking'}).click();await expect(page.getByText('Cancelled',{exact:true})).toBeVisible();
+});
+test('booking clock dims unavailable half-hour starts',async({page})=>{
+ await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:600,available:true},{minute:630,available:false},{minute:660,available:true}]})}));
+ await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
+ await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
+ await expect(clock.getByText('AM',{exact:true})).toBeVisible();
+ await expect(clock.getByText('PM',{exact:true})).toBeVisible();
+ await clock.locator('.tp-ui-minutes').click();
+ await expect(clock.locator('.tp-ui-minutes-time.tp-ui-tips-disabled .tp-ui-value-tips',{hasText:'30'})).toBeVisible();
+ await expect(clock.locator('.tp-ui-minutes-time:not(.tp-ui-tips-disabled) .tp-ui-value-tips',{hasText:'00'})).toBeVisible();
+ await clock.locator('.tp-ui-cancel-btn').click();
+ await expect(clock).toHaveCount(0);
+ await page.getByRole('button',{name:/Open clock to pick a time/}).click();
+ await expect(clock).toBeVisible();
+});
+test('booking clock keeps afternoon availability in 12-hour format',async({page})=>{
+ await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:780,available:true}]})}));
+ await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
+ await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
+ await expect(clock.getByText('PM',{exact:true})).toBeVisible();
+ await clock.locator('.tp-ui-ok-btn').click();
+ await expect(page.locator('.schedule-clock-trigger')).toContainText('1:00 PM');
+ await expect(page.locator('.schedule-total')).toContainText('1:00 PM');
+});
+test('a fully booked date keeps the request unavailable',async({page})=>{
+ await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[]})}));
+ await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
+ await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await expect(page.getByText('No times are available on this day. Choose another date.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Request',exact:true})).toBeDisabled();
+ await expect(page.locator('.tp-ui-wrapper.hotlah-booking-clock')).toHaveCount(0);
 });
 test('subscription gate redacts details and blocks direct access',async({page})=>{
  await page.request.post('/api/demo/login',{data:{role:'merchant'}});await page.request.post('/api/demo/access',{data:{restricted:true}});
@@ -25,7 +62,7 @@ test('public legal pages load without authentication and are linked',async({page
 test('catalogue next availability corresponds to a requestable slot',async({request})=>{const {services}=await (await request.get('/api/catalog')).json();for(const service of services){if(!service.next_available)continue;const {slots}=await (await request.get(`/api/services/${service.id}/availability?date=${service.next_available.date}`)).json();expect(slots.some((s:{minute:number;available:boolean})=>s.minute===service.next_available.minute&&s.available)).toBe(true);}});
 test('language switch and geographic region selector work',async({page})=>{await page.goto('/');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');await page.getByRole('button',{name:'Kuala Lumpur & Selangor',exact:true}).click();await expect(page.getByRole('button',{name:'Select Petaling',exact:true})).toBeVisible();await page.getByRole('button',{name:'Select Petaling',exact:true}).click();await page.getByRole('button',{name:'Search this area',exact:true}).click();await expect(page.locator('.service-card')).toHaveCount(6);await page.getByRole('button',{name:'切换中文'}).click();await expect(page.getByRole('heading',{name:'找到下一款心动美甲。'})).toBeVisible();await expect(page.locator('html')).toHaveAttribute('lang','zh-Hans');});
 test('every viewport keeps the centered phone interface without overflow',async({page})=>{await page.request.post('/api/demo/login',{data:{role:'customer'}});for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});for(const path of ['/','/services/french-gel','/bookings','/messages','/account','/privacy','/data-deletion']){await page.goto(path);await expect(page.locator('main')).toBeVisible();await expect(page.locator('.bottom-nav')).toBeVisible();await expect(page.locator('.desktop-nav')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);const shell=await page.locator('.app-shell').boundingBox();const nav=await page.locator('.bottom-nav').boundingBox();const clientWidth=await page.evaluate(()=>document.documentElement.clientWidth);expect(shell).not.toBeNull();expect(nav).not.toBeNull();expect(shell!.width).toBeLessThanOrEqual(430);expect(Math.abs(shell!.x-(clientWidth-shell!.width)/2)).toBeLessThanOrEqual(1);expect(Math.abs(nav!.x-shell!.x)).toBeLessThanOrEqual(1);expect(Math.abs(nav!.width-shell!.width)).toBeLessThanOrEqual(1);}await page.goto('/');expect(await page.locator('.service-grid').evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(1);expect(await page.locator('.style-strip').evaluate(strip=>getComputedStyle(strip).flexWrap)).toBe('nowrap');expect(await page.locator('.style-strip>.chip').evaluateAll(chips=>new Set(chips.map(chip=>Math.round(chip.getBoundingClientRect().top))).size)).toBe(1);}});
-test('style chips stay on one horizontally scrollable row',async({page})=>{await page.setViewportSize({width:320,height:844});await page.goto('/');const strip=page.locator('.style-strip');await expect(strip).toBeVisible();expect(await strip.evaluate(element=>element.scrollWidth>element.clientWidth)).toBe(true);expect(await strip.locator('.chip').evaluateAll(chips=>new Set(chips.map(chip=>Math.round(chip.getBoundingClientRect().top))).size)).toBe(1);await strip.hover();await page.mouse.wheel(0,240);await expect.poll(()=>strip.evaluate(element=>element.scrollLeft)).toBeGreaterThan(0);});
+test('style chips stay on one horizontally scrollable row',async({page})=>{await page.setViewportSize({width:320,height:844});await page.goto('/');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');const strip=page.locator('.style-strip');await expect(strip).toBeVisible();expect(await strip.evaluate(element=>element.scrollWidth>element.clientWidth)).toBe(true);expect(await strip.locator('.chip').evaluateAll(chips=>new Set(chips.map(chip=>Math.round(chip.getBoundingClientRect().top))).size)).toBe(1);await strip.hover();await page.mouse.wheel(0,240);await expect.poll(()=>strip.evaluate(element=>element.scrollLeft)).toBeGreaterThan(0);});
 test('guest account uses the Hotlah sheep avatar',async({page})=>{await page.goto('/account');const avatar=page.locator('.account-summary>.avatar.large');await expect(avatar).toBeVisible();expect(await avatar.evaluate(element=>getComputedStyle(element).backgroundImage)).toContain('brand-mark.png');expect(await avatar.evaluate(element=>getComputedStyle(element).fontSize)).toBe('0px');});
 test('administrator can open insights, review merchants, and update merchant information',async({page})=>{await page.request.post('/api/demo/login',{data:{role:'admin'}});const session=await (await page.request.get('/api/session')).json();expect(session.admin).toBe(true);await page.goto('/account');await page.getByRole('link',{name:'Open administrator workspace'}).click();await expect(page.getByRole('heading',{name:'Hotlah administration'})).toBeVisible();await expect(page.getByText('Platform insights')).toBeVisible();await page.getByRole('tab',{name:'Merchants'}).click();await page.getByRole('button',{name:/Review Studio Mei/}).click();await expect(page.getByRole('heading',{name:'Merchant review'})).toBeVisible();const detailResponse=await page.request.get('/api/admin/merchants/studio-mei');expect(detailResponse.ok()).toBe(true);const detail=await detailResponse.json();const merchant=detail.merchant;const update=await page.request.patch('/api/admin/merchants/studio-mei',{data:{name:merchant.name,area:merchant.area,type:merchant.type,bio:merchant.bio,address:merchant.address,phone:merchant.phone,lat:merchant.lat,lng:merchant.lng,styles:merchant.styles,hours:merchant.hours,policy:merchant.policy,auto_approve:!!merchant.auto_approve}});expect(update.ok()).toBe(true);});
 test('administrator APIs reject ordinary customers',async({page})=>{await page.request.post('/api/demo/login',{data:{role:'customer'}});expect((await page.request.get('/api/admin')).status()).toBe(403);expect((await page.request.get('/api/admin/merchants/studio-mei')).status()).toBe(403);expect((await page.request.patch('/api/admin/merchants/studio-mei',{data:{}})).status()).toBe(403);});
