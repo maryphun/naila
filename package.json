@@ -10,7 +10,9 @@
     "build": "react-router build",
     "typecheck": "react-router typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:android-config": "node --test tests/android-assetlinks.test.mjs",
     "test:e2e": "playwright test",
+    "android:assetlinks": "node scripts/android-assetlinks.mjs",
     "db:migrate": "wrangler d1 migrations apply hotlah --local",
     "db:seed": "wrangler d1 execute hotlah --local --file=./database/seed.sql",
     "deploy": "pnpm build && wrangler deploy"

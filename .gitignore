@@ -14,3 +14,11 @@ coverage/
 .impeccable/review/
 .impeccable/build/
 *.log
+
+# Android build outputs and private signing material
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/build/
+*.jks
+*.keystore

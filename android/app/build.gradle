@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application'
+}
+
+def signingVariables = [
+    'HOTLAH_UPLOAD_KEYSTORE',
+    'HOTLAH_UPLOAD_KEYSTORE_PASSWORD',
+    'HOTLAH_UPLOAD_KEY_ALIAS',
+    'HOTLAH_UPLOAD_KEY_PASSWORD'
+]
+def hasReleaseSigning = signingVariables.every { System.getenv(it) }
+
+android {
+    namespace 'site.hotlah.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'site.hotlah.app'
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(System.getenv('HOTLAH_UPLOAD_KEYSTORE'))
+                storePassword System.getenv('HOTLAH_UPLOAD_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('HOTLAH_UPLOAD_KEY_ALIAS')
+                keyPassword System.getenv('HOTLAH_UPLOAD_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def releaseRequested = graph.allTasks.any { task ->
+        task.project == project && task.name in ['assembleRelease', 'bundleRelease']
+    }
+    if (releaseRequested && !hasReleaseSigning) {
+        throw new GradleException('Release signing is not configured. Set HOTLAH_UPLOAD_KEYSTORE, HOTLAH_UPLOAD_KEYSTORE_PASSWORD, HOTLAH_UPLOAD_KEY_ALIAS and HOTLAH_UPLOAD_KEY_PASSWORD.')
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'
+}

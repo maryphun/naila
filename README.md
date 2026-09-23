@@ -2,6 +2,8 @@
 
 A phone-first nailist marketplace for Kuala Lumpur and Selangor. Built as a working local MVP, with customer and solo-merchant experiences in one responsive web app.
 
+Android test APK and Play Store app bundle build instructions are in [android/README.md](android/README.md).
+
 ## Run locally
 
 Requires Node 22.13+ (Node 24 recommended) and pnpm. No live Cloudflare account is needed for the local preview.
