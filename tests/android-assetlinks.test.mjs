@@ -22,3 +22,10 @@ test('Android application ID matches the asset links generator', async () => {
   assert.match(gradle, new RegExp(`applicationId '${ANDROID_PACKAGE_ID.replaceAll('.', '\\.')}'`));
   assert.match(gradle, /targetSdk 36/);
 });
+
+test('Android launcher declares the browser and site-settings components it uses', async () => {
+  const manifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
+  assert.match(manifest, /<queries>[\s\S]*android\.support\.customtabs\.action\.CustomTabsService[\s\S]*<\/queries>/);
+  assert.match(manifest, /<activity\s+android:name="com\.google\.androidbrowserhelper\.trusted\.ManageDataLauncherActivity"[\s\S]*?<\/activity>/);
+  assert.match(manifest, /android:manageSpaceActivity="com\.google\.androidbrowserhelper\.trusted\.ManageDataLauncherActivity"/);
+});

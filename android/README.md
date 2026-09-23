@@ -12,6 +12,8 @@ The Android application ID is **`site.hotlah.app`**. Do not change it after crea
 
 The debug APK is for testing, not Google Play. Before Digital Asset Links are deployed for its debug signing certificate, it will show a browser toolbar instead of the verified full-screen TWA. The GitHub runner's debug certificate is ephemeral; use the signed release APK for reliable TWA verification tests.
 
+If you installed a debug APK from an earlier workflow run, uninstall it before installing a newly built debug APK. GitHub runners can sign each debug build with a different temporary key, so an in-place update may fail. Uninstalling removes that app's local data. If the new app still closes at launch, capture the Android crash log with `adb logcat -b crash -d` and look for `FATAL EXCEPTION` and the `site.hotlah.app` process.
+
 For local builds, install Android Studio (with JDK 17, Android SDK Platform 36 and Build Tools 36.0.0) and Gradle 8.13. Open the `android` folder in Android Studio, or run `gradle -p android :app:assembleDebug` from the repository root. Java/Android SDK are not bundled with this repository.
 
 ## Prepare signing and a Play build
