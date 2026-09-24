@@ -3,7 +3,7 @@ import { Calendar, type ISODateString } from '@astryxdesign/core/Calendar';
 import { ArrowRight, CalendarDays, Check, Clock3 } from 'lucide-react';
 import { apiRequest } from '../lib/api';
 import { friendlyDate, localDate, money, type Language } from '../lib/types';
-import { bookingTime, clockToMinute, isWorkingDay, unavailableIntervals, type AvailabilitySlot } from '../lib/booking-schedule';
+import { bookingTime, clockToMinute, isWorkingDay, preferredBookingStart, unavailableHourIntervals, type AvailabilitySlot } from '../lib/booking-schedule';
 import { ErrorNotice, Loading } from './ui';
 
 export type BookingTimeSelection = { date: string; minute: number };
@@ -21,13 +21,47 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
   useEffect(() => {
     let active = true;
     let picker: import('timepicker-ui').TimepickerUI | undefined;
+    let observer: MutationObserver | undefined;
+    const initialStart = preferredBookingStart(slots)!;
+    let currentHour = Math.floor(initialStart.minute / 60) * 60;
+    let selectedOffset = initialStart.minute % 60;
+    const startButtons = new Map<number, HTMLButtonElement>();
+
+    const updateStarts = (hour?: string, period?: string) => {
+      const hourStart = clockToMinute(hour ?? picker?.getValue().hour, '00', period ?? picker?.getValue().type);
+      if (hourStart === null) return;
+      currentHour = hourStart;
+      const isAvailable = (offset: number) => slots.some(slot => slot.minute === currentHour + offset && slot.available);
+      if (!isAvailable(selectedOffset)) selectedOffset = isAvailable(0) ? 0 : 30;
+      for (const [offset, button] of startButtons) {
+        button.textContent = bookingTime(currentHour + offset);
+        button.disabled = !isAvailable(offset);
+        button.setAttribute('aria-pressed', String(offset === selectedOffset && !button.disabled));
+      }
+    };
+    const chooseHour = (event: Event) => {
+      const tip = event.target instanceof Element ? event.target.closest('.tp-ui-hour-time-12') : null;
+      if (!tip?.closest('.hotlah-booking-clock') || !picker) return;
+      const period = picker.getValue().type;
+      const hourStart = clockToMinute(tip.textContent?.trim(), '00', period);
+      if (hourStart === null) return;
+      const starts = slots.filter(slot => slot.available && Math.floor(slot.minute / 60) * 60 === hourStart);
+      if (!starts.length) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const minute = starts.find(slot => slot.minute === hourStart + selectedOffset)?.minute ?? starts[0].minute;
+      selectedOffset = minute - hourStart;
+      picker.setValue(bookingTime(minute));
+      updateStarts(tip.textContent?.trim(), period);
+    };
+
     const input = document.createElement('input');
     input.type = 'text';
     input.readOnly = true;
     input.tabIndex = -1;
     input.className = 'booking-clock-anchor';
     input.setAttribute('aria-label', lang === 'zh' ? '预约开始时间' : 'Appointment start time');
-    input.value = bookingTime(slots.find(slot => slot.available)!.minute);
+    input.value = bookingTime(initialStart.minute);
     host.current?.appendChild(input);
 
     import('timepicker-ui').then(({ TimepickerUI }) => {
@@ -35,10 +69,10 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
       picker = new TimepickerUI(input, {
         clock: {
           type: '12h',
-          incrementMinutes: 30,
-          disabledTime: { interval: unavailableIntervals(slots) },
+          autoSwitchToMinutes: false,
+          disabledTime: { interval: unavailableHourIntervals(slots) },
         },
-        ui: { mode: 'clock', theme: 'basic', cssClass: 'hotlah-booking-clock', editable: false },
+        ui: { mode: 'clock', theme: 'basic', cssClass: 'hotlah-booking-clock', editable: false, enableSwitchIcon: false },
         labels: {
           ok: lang === 'zh' ? '选择时间' : 'Choose time',
           cancel: lang === 'zh' ? '取消' : 'Cancel',
@@ -47,8 +81,10 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
         },
         callbacks: {
           onCancel: onClose,
-          onConfirm: ({ hour, minutes, type }) => {
-            const minute = clockToMinute(hour, minutes, type);
+          onUpdate: ({ hour, type }) => updateStarts(hour, type),
+          onConfirm: ({ hour, type }) => {
+            const hourStart = clockToMinute(hour, '00', type);
+            const minute = hourStart === null ? null : hourStart + selectedOffset;
             if (minute === null || !slots.some(slot => slot.minute === minute && slot.available)) {
               onError(lang === 'zh' ? '此时间无法预约，请选择未变灰的时间。' : 'That time is unavailable. Choose a time that is not dimmed.');
               onClose();
@@ -60,7 +96,40 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
         },
       });
       picker.create();
+      const starts = document.createElement('section');
+      starts.className = 'booking-clock-starts';
+      starts.setAttribute('role', 'group');
+      starts.setAttribute('aria-label', lang === 'zh' ? '此小时可预约的时间' : 'Available starts in this hour');
+      const label = document.createElement('p');
+      label.textContent = lang === 'zh' ? '此小时可预约' : 'Available starts this hour';
+      starts.appendChild(label);
+      const options = document.createElement('section');
+      options.className = 'booking-clock-start-options';
+      for (const offset of [0, 30]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.addEventListener('click', () => {
+          selectedOffset = offset;
+          updateStarts();
+        });
+        options.appendChild(button);
+        startButtons.set(offset, button);
+      }
+      starts.appendChild(options);
+      const attachStarts = () => {
+        if (!active || starts.isConnected) return;
+        const clockBody = document.querySelector('.tp-ui-wrapper.hotlah-booking-clock .tp-ui-body');
+        const footer = clockBody?.closest('.tp-ui-wrapper')?.querySelector('.tp-ui-footer');
+        if (!footer?.parentElement) return;
+        footer.parentElement.insertBefore(starts, footer);
+        document.addEventListener('pointerdown', chooseHour, true);
+        observer?.disconnect();
+        updateStarts();
+      };
+      observer = new MutationObserver(attachStarts);
+      observer.observe(document.body, { childList: true, subtree: true });
       picker.open();
+      attachStarts();
     }).catch(() => {
       if (active) {
         onError(lang === 'zh' ? '无法打开时间选择器，请重试。' : 'The time picker could not open. Please try again.');
@@ -70,6 +139,8 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
 
     return () => {
       active = false;
+      observer?.disconnect();
+      document.removeEventListener('pointerdown', chooseHour, true);
       picker?.destroy();
       host.current?.replaceChildren();
     };

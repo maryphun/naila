@@ -1,5 +1,10 @@
 export type AvailabilitySlot = { minute: number; available: boolean };
 
+export function preferredBookingStart(slots: AvailabilitySlot[], preferredMinute = 14 * 60) {
+  return slots.filter(slot => slot.available).reduce<AvailabilitySlot | null>((nearest, slot) =>
+    !nearest || Math.abs(slot.minute - preferredMinute) < Math.abs(nearest.minute - preferredMinute) ? slot : nearest, null);
+}
+
 export function bookingTime(minute: number) {
   const hour = Math.floor(minute / 60);
   return `${hour % 12 || 12}:${String(minute % 60).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
@@ -16,17 +21,17 @@ export function isWorkingDay(date: Date, days: number[]) {
   return days.includes(date.getDay());
 }
 
-/** The clock accepts time ranges, while availability is expressed as 30-minute starts. */
-export function unavailableIntervals(slots: AvailabilitySlot[]) {
-  const available = new Set(slots.filter(slot => slot.available).map(slot => slot.minute));
+/** The hour dial is disabled only when an entire hour has no bookable starts. */
+export function unavailableHourIntervals(slots: AvailabilitySlot[]) {
+  const availableHours = new Set(slots.filter(slot => slot.available).map(slot => Math.floor(slot.minute / 60)));
   const intervals: string[] = [];
   let start: number | null = null;
 
-  for (let minute = 0; minute <= 1440; minute += 30) {
-    const unavailable = minute < 1440 && !available.has(minute);
-    if (unavailable && start === null) start = minute;
+  for (let hour = 0; hour <= 24; hour++) {
+    const unavailable = hour < 24 && !availableHours.has(hour);
+    if (unavailable && start === null) start = hour;
     if (!unavailable && start !== null) {
-      intervals.push(`${bookingTime(start)} - ${bookingTime(minute - 1)}`);
+      intervals.push(`${bookingTime(start * 60)} - ${bookingTime(hour * 60 - 1)}`);
       start = null;
     }
   }

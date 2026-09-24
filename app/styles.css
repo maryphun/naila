@@ -46,10 +46,19 @@
 .schedule-total small{color:var(--muted)}
 .booking-clock-host,.booking-clock-host .tp-ui{position:absolute;width:0;height:0;overflow:hidden}
 .booking-clock-anchor{width:0;height:0;padding:0;opacity:0}
-.hotlah-booking-clock{--tp-bg:var(--paper);--tp-surface:var(--line);--tp-surface-hover:var(--yellow);--tp-input-bg:var(--line);--tp-text:var(--ink);--tp-text-secondary:var(--muted);--tp-text-disabled:var(--muted);--tp-primary:var(--yellow);--tp-on-primary:var(--ink);--tp-primary-container:var(--yellow);--tp-on-primary-container:var(--ink);--tp-outline:var(--green);--tp-border:var(--line);--tp-border-radius:var(--radius-page);font-family:var(--font-sans)}
+.hotlah-booking-clock{--booking-cream:#fffaf5;--booking-blush:#f8dfe8;--booking-mint:#e2f1e8;--booking-line:#e9dce0;--tp-bg:var(--booking-cream);--tp-surface:var(--booking-mint);--tp-surface-hover:var(--booking-blush);--tp-input-bg:var(--booking-mint);--tp-text:var(--ink);--tp-text-secondary:var(--muted);--tp-text-disabled:var(--muted);--tp-primary:var(--booking-blush);--tp-on-primary:var(--ink);--tp-primary-container:var(--booking-blush);--tp-on-primary-container:var(--ink);--tp-outline:var(--green);--tp-border:var(--booking-line);--tp-border-radius:var(--radius-page);max-width:calc(100dvw - var(--spacing-4) * 2);max-height:calc(100dvh - var(--spacing-4) * 2);overflow-y:auto;font-family:var(--font-sans)}
 .hotlah-booking-clock :is(.tp-ui-value-tips,.tp-ui-value-tips-24h).tp-ui-tips-disabled{color:var(--color-text-disabled)}
-.hotlah-booking-clock .tp-ui-ok-btn{background:var(--yellow);border-radius:var(--radius-full);color:var(--ink);font-weight:var(--font-weight-bold)}
+.hotlah-booking-clock .tp-ui-ok-btn{background:var(--booking-blush);border-radius:var(--radius-full);color:var(--ink);font-weight:var(--font-weight-bold)}
 .hotlah-booking-clock .tp-ui-cancel-btn{color:var(--ink)}
+.hotlah-booking-clock .tp-ui-input-wrapper:has(.tp-ui-minutes),.hotlah-booking-clock .tp-ui-dots{display:none}
+.hotlah-booking-clock .tp-ui-wrapper-time{justify-content:center}
+.hotlah-booking-clock .booking-clock-starts{padding:var(--spacing-4);border-top:var(--border-width) solid var(--booking-line)}
+.hotlah-booking-clock .booking-clock-starts p{margin-bottom:var(--spacing-2);color:var(--muted);font-size:var(--font-size-sm)}
+.hotlah-booking-clock .booking-clock-start-options{display:flex;gap:var(--spacing-2)}
+.hotlah-booking-clock .booking-clock-start-options button{flex:1;min-width:0;min-height:var(--spacing-10);padding:var(--spacing-2);border:var(--border-width) solid var(--booking-line);border-radius:var(--radius-full);background:var(--booking-cream);font-size:var(--font-size-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hotlah-booking-clock .booking-clock-start-options button[aria-pressed=true]{border-color:var(--ink);background:var(--booking-blush);font-weight:var(--font-weight-bold)}
+.hotlah-booking-clock .booking-clock-start-options button:hover:not(:disabled){background:var(--booking-mint)}
+@media(max-width:359px){.hotlah-booking-clock .booking-clock-starts{padding-inline:var(--spacing-2)}.hotlah-booking-clock .booking-clock-start-options{gap:var(--spacing-1)}}
 
 /* One phone interface at every browser width. */
 /* Guided merchant tools share the same compact phone canvas. */
