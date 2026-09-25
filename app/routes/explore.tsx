@@ -13,12 +13,21 @@ import { post } from '../lib/api';
 import { NailStylePicker } from '../components/nail-style-picker';
 import { LocationPicker } from '../components/location-picker';
 import { Center } from '@astryxdesign/core/Center';
+import { getRecentCatalog,rememberCatalog } from '../lib/catalog-cache';
 const districtAreas:Record<string,string[]>={Petaling:['Petaling Jaya','Damansara','Subang','Shah Alam','Puchong'],'Hulu Langat':['Cheras','Kajang'],Gombak:['Gombak','Ampang'],'Kuala Langat':['Banting']};
 export const meta=()=>[{title:'Hotlah — Find your next set'}];
 export const loader=({request,context}:Route.LoaderArgs)=>serverApi<{services:Service[]}>(request,context,'/api/catalog');
+export async function clientLoader({serverLoader}:Route.ClientLoaderArgs){
+ const cached=getRecentCatalog();
+ if(cached)return cached;
+ const catalog=await serverLoader();
+ rememberCatalog(catalog);
+ return catalog;
+}
 export default function Explore(){
  const {services}=useLoaderData<typeof loader>();const {t,lang,toast}=useApp();
  const [query,setQuery]=useState(''),[style,setStyle]=useState('All'),[area,setArea]=useState('All areas'),[filters,setFilters]=useState(false),[location,setLocation]=useState(false),[onboard,setOnboard]=useState(false),[type,setType]=useState('all'),[shape,setShape]=useState('all'),[budget,setBudget]=useState(200),[sort,setSort]=useState('recommended'),[view,setView]=useState('services'),[coords,setCoords]=useState<[number,number]|null>(null),[radius,setRadius]=useState(25);
+ useEffect(()=>{rememberCatalog({services});},[services]);
  useEffect(()=>{if(!localStorage.getItem('hotlah:style-seen'))setOnboard(true);const s=localStorage.getItem('hotlah:style');if(s)setStyle(s);},[]);
  const choose=(s:string)=>{setStyle(s);localStorage.setItem('hotlah:style',s);localStorage.setItem('hotlah:style-seen','1');setOnboard(false);};
  const result=useMemo(()=>services.map(s=>({...s,distance:coords?distanceKm(coords[0],coords[1],s.lat,s.lng):undefined})).filter(s=>(style==='All'||s.style===style)&&(area==='All areas'||(districtAreas[area]??[area]).some(a=>s.area.includes(a)))&&(type==='all'||s.type===type)&&(shape==='all'||s.shape===shape)&&s.price<=budget*100&&(!coords||s.distance!<=radius)&&`${s.name} ${s.name_zh} ${s.merchant_name} ${s.area}`.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>sort==='price'?a.price-b.price:sort==='distance'?(a.distance??0)-(b.distance??0):Number(!!b.next_available)-Number(!!a.next_available)||b.promoted-a.promoted),[services,style,area,type,shape,budget,query,coords,radius,sort]);

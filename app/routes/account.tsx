@@ -4,12 +4,18 @@ import { useApp } from '../lib/context';
 import { post,useApi } from '../lib/api';
 import type { Service } from '../lib/types';
 import { ServiceCard } from '../components/service-card';
-import { HotlahSegmentedControl } from '../components/ui';
+import { ErrorNotice,HotlahSegmentedControl } from '../components/ui';
+import { getRecentCatalog,rememberCatalog } from '../lib/catalog-cache';
+import { useEffect } from 'react';
+import { Skeleton } from '@astryxdesign/core/Skeleton';
 
 export default function Account(){
   const {t,lang,setLang,session,setAuthOpen,saved,demoLogin,refreshSession,toast}=useApp();
   const navigate=useNavigate();
-  const {data}=useApi<{services:Service[]}>('/api/catalog');
+  const cachedCatalog=getRecentCatalog();
+  const {data,error}=useApi<{services:Service[]}>(saved.length&&!cachedCatalog?'/api/catalog':null);
+  useEffect(()=>{if(data)rememberCatalog(data);},[data]);
+  const savedServices=(cachedCatalog??data)?.services.filter(s=>saved.includes(s.id));
   return <article className="account-page">
     <header className="page-intro"><h1>{t('Your little corner','您的专属空间')}</h1></header>
     <section className="account-summary"><span className="avatar large">{session.user?.name.slice(0,1)??'h.'}</span><span>{session.user?.name&&<h2>{session.user.name}</h2>}{session.user?.email&&<p className="muted">{session.user.email}</p>}</span>{!session.user&&<button className="button primary" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}</button>}</section>
@@ -19,7 +25,7 @@ export default function Account(){
       <Link className="option-row" to={session.merchant?'/merchant':'/join'}><span><Store size={20}/>{t(session.merchant?'Open nailist workspace':'Are you a nailist?',session.merchant?'进入美甲师工作台':'您是美甲师吗？')}</span><ArrowRight size={20}/></Link>
       {session.user&&<button className="option-row" onClick={async()=>{await post('/api/logout',{});await refreshSession();navigate('/');}}><span><LogOut size={20}/>{t('Sign out','退出登录')}</span></button>}
     </section>
-    <section><header className="section-heading"><h2><Heart size={22}/>{t('Saved for later','收藏的心动款式')}</h2><span className="muted">{saved.length}</span></header>{saved.length?<section className="service-grid motion-stagger">{data?.services.filter(s=>saved.includes(s.id)).map(s=><ServiceCard key={s.id} service={s}/>)}</section>:<p className="muted">{t('Tap the heart on a service to keep it here.','点击服务上的爱心，即可收藏在这里。')}</p>}</section>
+    <section><header className="section-heading"><h2><Heart size={22}/>{t('Saved for later','收藏的心动款式')}</h2><span className="muted">{saved.length}</span></header>{saved.length?error?<ErrorNotice message={error}/>:savedServices?<section className="service-grid motion-stagger">{savedServices.map(s=><ServiceCard key={s.id} service={s}/>)}</section>:<section className="saved-services-loading" role="status" aria-label={t('Loading saved services','正在加载收藏的服务')}><Skeleton width="100%" height="100%" radius={3}/></section>:<p className="muted">{t('Tap the heart on a service to keep it here.','点击服务上的爱心，即可收藏在这里。')}</p>}</section>
     {session.demo&&<details className="demo-tools"><summary>Local preview tools</summary><p>Try both sides of Hotlah using fictional accounts. These controls only exist on localhost.</p><section className="button-pair">{(['customer','merchant','admin'] as const).map(role=><button className="button secondary" key={role} onClick={()=>demoLogin(role).catch(e=>toast(e.message))}>{role}</button>)}</section></details>}
   </article>;
 }
