@@ -11,8 +11,8 @@ export default function Account(){
   const navigate=useNavigate();
   const {data}=useApi<{services:Service[]}>('/api/catalog');
   return <article className="account-page">
-    <header className="page-intro"><h1>{t('Your little corner','您的专属空间')}</h1><p>{t('Good taste deserves a home.','让好品味，有个归属。')}</p></header>
-    <section className="account-summary"><span className="avatar large">{session.user?.name.slice(0,1)??'h.'}</span><span><h2>{session.user?.name??t('Hello, lovely.','你好呀。')}</h2><p className="muted">{session.user?.email??t('Sign in to keep everything together.','登录后，一切尽在掌握。')}</p></span>{!session.user&&<button className="button primary" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}</button>}</section>
+    <header className="page-intro"><h1>{t('Your little corner','您的专属空间')}</h1></header>
+    <section className="account-summary"><span className="avatar large">{session.user?.name.slice(0,1)??'h.'}</span><span>{session.user?.name&&<h2>{session.user.name}</h2>}{session.user?.email&&<p className="muted">{session.user.email}</p>}</span>{!session.user&&<button className="button primary" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}</button>}</section>
     <section className="account-actions">
       {session.admin&&<Link className="option-row admin-entry" to="/admin"><span><ShieldCheck size={20}/>{t('Open administrator workspace','进入管理员工作台')}</span><ArrowRight size={20}/></Link>}
       <section className="option-row language-option-row"><span><Globe size={20}/>{t('Language','语言')}</span><HotlahSegmentedControl className="account-language-segmented" size="sm" value={lang} onChange={value=>setLang(value as 'en'|'zh')} label={t('Language','语言')} options={[{value:'en',label:'EN'},{value:'zh',label:'中文'}]}/></section>
