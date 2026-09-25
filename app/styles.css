@@ -278,6 +278,10 @@ body{background:#eeeedf}.app-shell{position:relative;width:100%;max-width:430px;
   --yellow-hover:color-mix(in srgb,var(--yellow) 92%,var(--ink));
   --control-height:var(--spacing-12);
   --control-motion:var(--duration-fast) var(--ease-standard);
+  --motion-enter-distance:var(--spacing-2);
+  --motion-stagger-1:45ms;
+  --motion-stagger-2:90ms;
+  --motion-stagger-3:135ms;
 }
 html{background:var(--paper-quiet)}
 body{font-size:var(--font-size-base);line-height:1.6;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
@@ -286,8 +290,14 @@ p{line-height:1.65}
 
 .site-header{position:sticky;top:0;z-index:35;border-bottom:1px solid var(--line);background:var(--paper)}
 .app-shell{isolation:isolate}
-.main-content> :first-child{animation:page-settle var(--duration-medium-min) var(--ease-standard) both}
-@keyframes page-settle{from{opacity:.72;filter:blur(3px);transform:translateY(var(--spacing-1))}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+@keyframes hotlah-rise-in{from{opacity:.01;transform:translateY(var(--motion-enter-distance))}to{opacity:1;transform:translateY(0)}}
+.motion-enter,.page-intro,.page-header,.discovery-intro{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) both}
+.motion-stagger>*{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) both}
+.motion-stagger>:nth-child(2){animation-delay:var(--motion-stagger-1)}
+.motion-stagger>:nth-child(3){animation-delay:var(--motion-stagger-2)}
+.motion-stagger>:nth-child(n+4){animation-delay:var(--motion-stagger-3)}
+.style-strip{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) var(--motion-stagger-1) both}
+.discovery-segmented-wrap{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) var(--motion-stagger-2) both}
 
 .button,
 .icon-button,
@@ -355,8 +365,8 @@ p{line-height:1.65}
 .service-bottom{margin-top:var(--spacing-4);padding-block:var(--spacing-4)}
 .save-button{border-color:var(--line-strong);background:var(--paper-raised);transition:border-color var(--control-motion),background-color var(--control-motion),transform var(--control-motion)}
 .save-button:hover{border-color:var(--ink);background:var(--yellow)}
-.save-button.saved{border-color:var(--ink);animation:save-pop var(--duration-fast-max) var(--ease-standard)}
-@keyframes save-pop{50%{transform:scale(1.12)}}
+.save-button.saved{border-color:var(--ink);animation:save-confirm var(--duration-fast-max) var(--ease-standard)}
+@keyframes save-confirm{50%{transform:translateY(calc(var(--border-width) * -2));background:var(--yellow-hover)}}
 
 .notice,.error-notice{border:1px solid var(--line);background:var(--paper-quiet)}
 .error-notice{border-color:color-mix(in srgb,currentColor 38%,var(--line));border-radius:var(--radius-container)}
@@ -380,15 +390,14 @@ p{line-height:1.65}
 button.option-row:active,.option-row[href]:active{transform:scale(.99)}
 .account-actions{border-top:0}
 
-.dialog-content{border:1px solid var(--line-strong);animation:dialog-enter var(--duration-medium-min) var(--ease-standard)}
+.dialog-content{border:1px solid var(--line-strong);animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard)}
 .dialog-content::backdrop{animation:backdrop-enter var(--duration-fast) var(--ease-standard)}
-@keyframes dialog-enter{from{opacity:.78;filter:blur(4px);transform:translateY(var(--spacing-2)) scale(.985)}to{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}}
 @keyframes backdrop-enter{from{opacity:.55}to{opacity:1}}
 .dialog-heading .astryx-button{border:1px solid var(--line-strong);background:var(--paper-raised)}
 .notification-list>a{border-radius:var(--radius-container);padding-inline:var(--spacing-2);transition:background-color var(--control-motion),transform var(--control-motion)}
 .notification-list>a:hover{background:var(--paper-quiet)}
-.toast{animation:toast-enter var(--duration-medium-min) var(--ease-standard)}
-@keyframes toast-enter{from{opacity:.7;filter:blur(4px);transform:translate(-50%,var(--spacing-3))}to{opacity:1;filter:blur(0);transform:translate(-50%,0)}}
+.toast{animation:toast-enter var(--duration-fast-max) var(--ease-standard)}
+@keyframes toast-enter{from{opacity:.01;transform:translate(-50%,var(--motion-enter-distance))}to{opacity:1;transform:translate(-50%,0)}}
 
 .bottom-nav{inset-inline:0;left:0;right:0;margin-inline:auto;transform:none;border-top-color:var(--line-strong);background:var(--paper-raised);touch-action:manipulation}
 .bottom-link{border-radius:var(--radius-container);touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:color var(--control-motion),background-color var(--control-motion),transform var(--control-motion)}
@@ -466,5 +475,3 @@ button.option-row:active,.option-row[href]:active{transform:scale(.99)}
   .header-actions .icon-button{width:var(--spacing-10);height:var(--spacing-10)}
   .language-button{min-height:var(--spacing-10);padding-inline:var(--spacing-2)}
 }
-
-@media(prefers-reduced-motion:reduce){.main-content> :first-child{animation:none}.save-button.saved{animation:none}.dialog-content,.dialog-content::backdrop,.toast{animation:none}}

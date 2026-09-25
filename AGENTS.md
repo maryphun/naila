@@ -31,3 +31,31 @@ MORE CLI:
   swizzle <Name>     eject component source for deep customization
   upgrade --apply    run after any Astryx or integration dependency bump
 <!-- ASTRYX:END -->
+
+## Testing and verification
+
+Be economical with tests and command execution.
+
+- Do not run the full test suite after every change.
+- For small UI, styling, animation, copy, or layout changes, do not run unit tests unless the changed code has relevant tests or there is a meaningful regression risk.
+- Prefer the smallest relevant verification command.
+- Batch related changes before running tests.
+- Do not repeatedly run the same test command unless code affecting that test has changed.
+- Do not run expensive integration/E2E tests automatically for routine UI work.
+- Run the full test suite only when:
+  - explicitly requested,
+  - making substantial logic/refactoring changes,
+  - changing shared infrastructure,
+  - or before finishing a sufficiently large/risky task where full verification is justified.
+- For frontend visual changes, prioritize type checking, linting, or a build when appropriate instead of exhaustive unit testing.
+- If verification would be disproportionately expensive relative to the change, skip it and briefly state what was not run.
+
+## Command efficiency
+
+Minimize unnecessary terminal commands and token usage.
+
+Think through the implementation before executing commands.
+Inspect relevant files first, make related edits together, then verify once.
+
+Do not use tests as a substitute for reasoning about the code.
+Avoid exploratory command loops when the implementation can be determined directly from the existing codebase.

@@ -32,7 +32,7 @@ export function HotlahSegmentedControl({value,onChange,label,options,size='md',c
 }
 export function Loading(){const {t}=useApp();return <section className="loading" role="status" aria-live="polite"><LoaderCircle className="spin" size={25}/><span>{t('Loading…','加载中…')}</span></section>;}
 export function ErrorNotice({message,retry}:{message:string;retry?:()=>void}){const {t}=useApp();return <aside className="error-notice" role="alert"><p>{message}</p>{retry&&<button className="text-button" onClick={retry}>{t('Try again','重试')} <ArrowRight size={16}/></button>}</aside>;}
-export function Empty({title,description,action}:{title:string;description:string;action?:ReactNode}){return <section className="empty-state"><span className="empty-symbol" aria-hidden="true"><CalendarDays size={34} strokeWidth={1.4}/></span><h2>{title}</h2><p className="muted">{description}</p>{action}</section>;}
+export function Empty({title,description,action}:{title:string;description:string;action?:ReactNode}){return <section className="empty-state motion-enter"><span className="empty-symbol" aria-hidden="true"><CalendarDays size={34} strokeWidth={1.4}/></span><h2>{title}</h2><p className="muted">{description}</p>{action}</section>;}
 export function StatusBadge({status}:{status:BookingStatus}) {
   const {t}=useApp();
   const labels:Record<BookingStatus,[string,string]>={pending:['Pending approval','等待确认'],approved:['Confirmed','已确认'],completed:['Completed','已完成'],cancelled:['Cancelled','已取消'],declined:['Declined','已拒绝'],expired:['Expired','已过期']};

@@ -31,7 +31,7 @@ export default function NailistPage(){
     </header>
     <section className="nailist-menu" aria-labelledby="nailist-menu-title">
       <header className="section-heading"><h2 id="nailist-menu-title">{t('Services & prices','服务与价格')}</h2><p className="muted small">{services.length} {t(services.length===1?'service':'services','项服务')}</p></header>
-      <section className="service-grid">{services.map(service=><ServiceCard service={service} hideMerchant key={service.id}/>)}</section>
+      <section className="service-grid motion-stagger">{services.map(service=><ServiceCard service={service} hideMerchant key={service.id}/>)}</section>
     </section>
     <section className="nailist-reviews" aria-labelledby="nailist-reviews-title">
       <h2 id="nailist-reviews-title">{t(`Reviews (${reviews.length})`,`评价 (${reviews.length})`)}</h2>
