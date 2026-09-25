@@ -296,6 +296,8 @@ p{line-height:1.65}
 .motion-stagger>:nth-child(2){animation-delay:var(--motion-stagger-1)}
 .motion-stagger>:nth-child(3){animation-delay:var(--motion-stagger-2)}
 .motion-stagger>:nth-child(n+4){animation-delay:var(--motion-stagger-3)}
+/* Discovery results change frequently: keep new cards and empty states immediately visible. */
+.explore-page .results-section .service-grid>*,.explore-page .results-section .empty-state{animation:none}
 .style-strip{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) var(--motion-stagger-1) both}
 .discovery-segmented-wrap{animation:hotlah-rise-in var(--duration-fast-max) var(--ease-standard) var(--motion-stagger-2) both}
 
@@ -409,8 +411,9 @@ button.option-row:active,.option-row[href]:active{transform:scale(.99)}
 .hotlah-segmented{--_segmented-control-radius:var(--radius-full);--_hotlah-segmented-inset:var(--spacing-0-5);position:relative;padding:var(--_hotlah-segmented-inset);border:var(--border-width) solid var(--line-strong);border-radius:var(--radius-full);background:var(--paper-quiet)}
 .hotlah-segmented::before{position:absolute;inset-block:calc(var(--border-width) + var(--_hotlah-segmented-inset));left:calc(var(--border-width) + var(--_hotlah-segmented-inset));width:calc(50% - var(--border-width) - var(--_hotlah-segmented-inset));border:var(--border-width) solid var(--ink);border-radius:var(--radius-full);background:var(--yellow);content:"";pointer-events:none;transition:transform 220ms cubic-bezier(.16,1,.3,1)}
 .hotlah-segmented:has(>[aria-checked="true"]:nth-child(2))::before{transform:translateX(100%)}
-.hotlah-segmented .astryx-segmented-control-item{position:relative;z-index:1;min-height:var(--spacing-9);padding-inline:var(--spacing-3);border-radius:var(--radius-full);background:transparent;box-shadow:none;color:var(--muted);font-weight:var(--font-weight-medium);transition:background-color 220ms ease-out,color 220ms ease-out,font-weight 220ms ease-out,transform 220ms ease-out}
-.hotlah-segmented .astryx-segmented-control-item[data-selected]{background:transparent;color:var(--ink);box-shadow:none;font-weight:var(--font-weight-bold)}
+/* Fixed label weight keeps glyph geometry stable while color and the active pill transition. */
+.hotlah-segmented .astryx-segmented-control-item{position:relative;z-index:1;min-height:var(--spacing-9);padding-inline:var(--spacing-3);border-radius:var(--radius-full);background:transparent;box-shadow:none;color:var(--muted);font-weight:var(--font-weight-semibold);transition:background-color 220ms ease-out,color 220ms ease-out,transform 220ms ease-out}
+.hotlah-segmented .astryx-segmented-control-item[data-selected]{background:transparent;color:var(--ink);box-shadow:none}
 .hotlah-segmented .astryx-segmented-control-item:active{transform:scale(.97)}
 .language-segmented,.account-language-segmented{flex-shrink:0;font-size:var(--font-size-xs)}
 .app-shell:has(.explore-page) .header-inner{height:calc(var(--spacing-12) + var(--spacing-3))}
