@@ -4,7 +4,7 @@ import { useEffect,useState } from 'react';
 import { useApp } from '../lib/context';
 import { post,useApi } from '../lib/api';
 import type { Notice } from '../lib/types';
-import { Modal } from './ui';
+import { HotlahSegmentedControl,Modal } from './ui';
 import { BrandWordmark } from './brand-wordmark';
 
 type SocialProvider='google'|'facebook'|'apple';
@@ -28,7 +28,7 @@ export function Shell({children}:{children:React.ReactNode}) {
     <a href="#main-content" className="skip-link">Skip to content</a>
     <header className="site-header"><div className="header-inner"><Link to={merchant?'/merchant':'/'} className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link>
       <nav className="desktop-nav" aria-label="Main navigation">{items.map(({to,label,icon:Icon,end})=><NavLink key={to} to={to} end={end} className={({isActive})=>`desktop-nav-link ${isActive?'active':''}`}><Icon size={17}/>{label}</NavLink>)}</nav>
-      <div className="header-actions"><button className="language-button" onClick={()=>setLang(lang==='en'?'zh':'en')} aria-label={lang==='en'?'切换中文':'Switch to English'}><span className={lang==='en'?'selected':''}>EN</span><span className="language-divider">/</span><span className={lang==='zh'?'selected':''}>中文</span></button>
+      <div className="header-actions"><HotlahSegmentedControl className="language-segmented" size="sm" value={lang} onChange={value=>setLang(value as 'en'|'zh')} label={t('Language','语言')} options={[{value:'en',label:'EN'},{value:'zh',label:'中文'}]}/>
       {session.user?<button className="icon-button notification-button" onClick={()=>{setNoticesOpen(true);post('/api/notifications/read').then(notices.refresh);}} aria-label={t('Notifications','通知')}><Bell size={21}/>{unread>0&&<span className="notification-dot"/>}</button>:<button className="desktop-signin" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}<ArrowUpRight size={16}/></button>}
       {merchant&&<Link className="icon-button" to="/" aria-label={t('Switch to customer view','切换顾客视图')}><ArrowLeftRight size={20}/></Link>}</div>
     </div></header>

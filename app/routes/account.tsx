@@ -4,6 +4,7 @@ import { useApp } from '../lib/context';
 import { post,useApi } from '../lib/api';
 import type { Service } from '../lib/types';
 import { ServiceCard } from '../components/service-card';
+import { HotlahSegmentedControl } from '../components/ui';
 
 export default function Account(){
   const {t,lang,setLang,session,setAuthOpen,saved,demoLogin,refreshSession,toast}=useApp();
@@ -14,7 +15,7 @@ export default function Account(){
     <section className="account-summary"><span className="avatar large">{session.user?.name.slice(0,1)??'h.'}</span><span><h2>{session.user?.name??t('Hello, lovely.','你好呀。')}</h2><p className="muted">{session.user?.email??t('Sign in to keep everything together.','登录后，一切尽在掌握。')}</p></span>{!session.user&&<button className="button primary" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}</button>}</section>
     <section className="account-actions">
       {session.admin&&<Link className="option-row admin-entry" to="/admin"><span><ShieldCheck size={20}/>{t('Open administrator workspace','进入管理员工作台')}</span><ArrowRight size={20}/></Link>}
-      <label className="option-row"><span><Globe size={20}/>{t('Language','语言')}</span><select aria-label="Language" value={lang} onChange={e=>setLang(e.target.value as 'en'|'zh')}><option value="en">English</option><option value="zh">简体中文</option></select></label>
+      <section className="option-row language-option-row"><span><Globe size={20}/>{t('Language','语言')}</span><HotlahSegmentedControl className="account-language-segmented" size="sm" value={lang} onChange={value=>setLang(value as 'en'|'zh')} label={t('Language','语言')} options={[{value:'en',label:'EN'},{value:'zh',label:'中文'}]}/></section>
       <Link className="option-row" to={session.merchant?'/merchant':'/join'}><span><Store size={20}/>{t(session.merchant?'Open nailist workspace':'Are you a nailist?',session.merchant?'进入美甲师工作台':'您是美甲师吗？')}</span><ArrowRight size={20}/></Link>
       {session.user&&<button className="option-row" onClick={async()=>{await post('/api/logout',{});await refreshSession();navigate('/');}}><span><LogOut size={20}/>{t('Sign out','退出登录')}</span></button>}
     </section>

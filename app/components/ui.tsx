@@ -1,6 +1,7 @@
 import { Dialog as AstryxDialog,DialogHeader } from '@astryxdesign/core/Dialog';
 import type { DialogPurpose } from '@astryxdesign/core/Dialog';
 import { Tab,TabList } from '@astryxdesign/core/TabList';
+import { SegmentedControl,SegmentedControlItem } from '@astryxdesign/core/SegmentedControl';
 import { ArrowLeft,LoaderCircle,LockKeyhole,CalendarDays,ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { useId,type ReactNode } from 'react';
@@ -23,6 +24,11 @@ export function HotlahTabs({value,onChange,label,tabs,id,className=''}:{value:st
 export function PageHeader({title,back='/',action}:{title:string;back?:string;action?:ReactNode}) {
   const {t}=useApp();
   return <header className="page-header"><Link to={back} className="icon-button back-button" aria-label={t('Go back','返回')}><ArrowLeft size={23}/></Link><h1>{title}</h1>{action??<span className="header-spacer"/>}</header>;
+}
+export function HotlahSegmentedControl({value,onChange,label,options,size='md',className=''}:{value:string;onChange:(value:string)=>void;label:string;options:{value:string;label:string}[];size?:'sm'|'md'|'lg';className?:string}){
+  return <SegmentedControl value={value} onChange={onChange} label={label} size={size} className={`hotlah-segmented ${className}`}>
+    {options.map(option=><SegmentedControlItem key={option.value} value={option.value} label={option.label}/>) }
+  </SegmentedControl>;
 }
 export function Loading(){const {t}=useApp();return <section className="loading" role="status" aria-live="polite"><LoaderCircle className="spin" size={25}/><span>{t('Loading…','加载中…')}</span></section>;}
 export function ErrorNotice({message,retry}:{message:string;retry?:()=>void}){const {t}=useApp();return <aside className="error-notice" role="alert"><p>{message}</p>{retry&&<button className="text-button" onClick={retry}>{t('Try again','重试')} <ArrowRight size={16}/></button>}</aside>;}

@@ -43,7 +43,7 @@ test('photo picker selects new styles, preserves dismissal and resets saved filt
     await page.screenshot({ path: '.impeccable/review/styles-' + width + '.png', animations: 'disabled' });
     await dialog.getByRole('button', { name: 'Show me everything', exact: true }).click();
   }
-  await page.getByRole('button', { name: '切换中文' }).click();
+  await page.getByRole('radiogroup', { name: 'Language' }).first().getByRole('radio', { name: '中文' }).click();
   await page.getByRole('button', { name: '选择款式', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: '韩式', exact: true }).click();
   await expect(page.locator('.style-strip').getByRole('button', { name: '韩式', exact: true })).toHaveAttribute('aria-pressed', 'true');

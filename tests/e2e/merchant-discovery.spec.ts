@@ -5,8 +5,8 @@ test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setIte
 test('customers can discover nailists and open their menus',async({page,request})=>{
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
-  await page.getByRole('tab',{name:'Nailists'}).click();
-  await expect(page.getByRole('tabpanel',{name:'Nailists'})).toBeVisible();
+  await page.getByRole('radiogroup',{name:'Discover by'}).getByRole('radio',{name:'Nailists'}).click();
+  await expect(page.getByRole('heading',{name:'Meet local nailists'})).toBeVisible();
   await expect(page.locator('.merchant-card')).toHaveCount(3);
   await page.getByRole('textbox',{name:'Search services or nailists'}).fill('Studio Mei');
   await expect(page.locator('.merchant-card')).toHaveCount(1);
@@ -24,7 +24,7 @@ test('customers can discover nailists and open their menus',async({page,request}
 test('style filters narrow nailists by their matching services',async({page})=>{
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
-  await page.getByRole('tab',{name:'Nailists'}).click();
+  await page.getByRole('radiogroup',{name:'Discover by'}).getByRole('radio',{name:'Nailists'}).click();
   await page.getByRole('button',{name:'Cat eye',exact:true}).click();
   await expect(page.locator('.merchant-card')).toHaveCount(1);
   await expect(page.locator('.merchant-card')).toContainText('Luna Nails');
