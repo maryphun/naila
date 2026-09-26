@@ -1,14 +1,16 @@
-import { Bell,Search,CalendarDays,MessageCircle,UserRound,ArrowUpRight,ArrowRight,ArrowLeftRight,ChartNoAxesCombined,Check } from 'lucide-react';
-import { Link,useLocation,useNavigation } from 'react-router';
+import { Bell,Search,CalendarDays,MessageCircle,UserRound,ArrowUpRight,ArrowRight,ArrowLeftRight,ChartNoAxesCombined,Check,RefreshCw } from 'lucide-react';
+import { Link,useLocation,useNavigation,useRevalidator } from 'react-router';
 import { useEffect,useRef,useState } from 'react';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { VStack } from '@astryxdesign/core/VStack';
 import { HStack } from '@astryxdesign/core/HStack';
 import { useApp } from '../lib/context';
-import { post,useApi } from '../lib/api';
+import { post,refreshActiveApiQueries,useApi } from '../lib/api';
 import type { Notice } from '../lib/types';
 import { HotlahSegmentedControl,Modal } from './ui';
 import { BrandWordmark } from './brand-wordmark';
+import { invalidateCatalog } from '../lib/catalog-cache';
+import { useAppBarInteractions } from '../lib/use-app-bar-interactions';
 
 type SocialProvider='google'|'facebook'|'apple';
 function ProviderIcon({provider}:{provider:SocialProvider}){
@@ -50,13 +52,19 @@ function PendingTabScreen({to,label,loadingLabel,accountTitle}:{to:string;label:
 }
 
 export function Shell({children}:{children:React.ReactNode}) {
-  const {session,t,lang,setLang,authOpen,setAuthOpen,demoLogin,toastMessage}=useApp();
-  const location=useLocation(),navigation=useNavigation();const merchant=location.pathname.startsWith('/merchant')||new URLSearchParams(location.search).get('view')==='merchant';
+  const {session,t,lang,setLang,authOpen,setAuthOpen,demoLogin,toastMessage,toast}=useApp();
+  const location=useLocation(),navigation=useNavigation(),revalidator=useRevalidator();const merchant=location.pathname.startsWith('/merchant')||new URLSearchParams(location.search).get('view')==='merchant';
   const routeKey=location.pathname+location.search;
   const [tabIntent,setTabIntent]=useState<{from:string;to:string}|null>(null);
   const startedIntent=useRef<string|null>(null);
   const [noticesOpen,setNoticesOpen]=useState(false),[busy,setBusy]=useState(''),[error,setError]=useState('');
   const notices=useApi<{notifications:Notice[]}>(session.user?'/api/notifications':null,30000);
+  useEffect(()=>{const refresh=()=>notices.refresh();window.addEventListener('hotlah:notifications-changed',refresh);return()=>window.removeEventListener('hotlah:notifications-changed',refresh);},[notices.refresh]);
+  const refreshPage=async()=>{
+    invalidateCatalog();
+    try{await Promise.all([revalidator.revalidate(),refreshActiveApiQueries()]);}catch(cause){toast((cause as Error).message);}
+  };
+  const {shellRef,headerRef,headerHidden,pullPhase}=useAppBarInteractions(routeKey,refreshPage);
   const unread=notices.data?.notifications.filter(n=>!n.read).length??0;
   const enabledProviders=(['google','facebook','apple'] as const).filter(provider=>session.providers[provider]);
   useEffect(()=>{setError('');window.scrollTo({top:0,behavior:'instant'});},[location.pathname]);
@@ -80,14 +88,14 @@ export function Shell({children}:{children:React.ReactNode}) {
   const isSelected=(to:string,end?:boolean)=>selectedTo?to===selectedTo:tabMatches(location.pathname,location.search,to,end);
   const activeTabIndex=items.findIndex(({to,end})=>isSelected(to,end));
   const signIn=async(provider:string)=>{setBusy(provider);setError('');try{const response=await post<{url:string}>('/api/auth/sign-in/social',{provider,callbackURL:location.pathname});if(response.url)window.location.assign(response.url);}catch(e){setError((e as Error).message);}finally{setBusy('');}};
-  return <div className={`app-shell ${merchant?'merchant-shell':''}`}>
+  return <div ref={shellRef} className={`app-shell ${merchant?'merchant-shell':''}`}>
     <a href="#main-content" className="skip-link">Skip to content</a>
-    <header className="site-header"><div className="header-inner"><Link to={merchant?'/merchant':'/'} className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link>
+    <header ref={headerRef} className={`site-header${headerHidden?' is-hidden':''}`}><div className="header-inner"><Link to={merchant?'/merchant':'/'} className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link>
       <nav className="desktop-nav" aria-label="Main navigation">{items.map(({to,label,icon:Icon,end})=><Link key={to} to={to} onClick={event=>selectTab(event,to)} aria-current={isSelected(to,end)?'page':undefined} className={`desktop-nav-link ${isSelected(to,end)?'active':''}`}><Icon size={17}/>{label}</Link>)}</nav>
       <div className="header-actions"><HotlahSegmentedControl className="language-segmented" size="sm" value={lang} onChange={value=>setLang(value as 'en'|'zh')} label={t('Language','语言')} options={[{value:'en',label:'EN'},{value:'zh',label:'中文'}]}/>
       {session.user?<button className="icon-button notification-button" onClick={()=>{setNoticesOpen(true);post('/api/notifications/read').then(notices.refresh);}} aria-label={t('Notifications','通知')}><Bell size={21}/>{unread>0&&<span className="notification-dot"/>}</button>:<button className="desktop-signin" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}<ArrowUpRight size={16}/></button>}
       {merchant&&<Link className="icon-button" to="/" aria-label={t('Switch to customer view','切换顾客视图')}><ArrowLeftRight size={20}/></Link>}</div>
-    </div></header>
+    </div><output className="pull-refresh-indicator" data-phase={pullPhase} role={pullPhase==='refreshing'?'status':undefined} aria-label={pullPhase==='refreshing'?t('Refreshing','正在刷新'):undefined} aria-hidden={pullPhase!=='refreshing'}><RefreshCw className="pull-refresh-glyph" size={18} aria-hidden="true"/></output></header>
     <main id="main-content" className="main-content">{pendingScreen?<PendingTabScreen key={pendingScreen.to} to={pendingScreen.to} label={pendingScreen.label} loadingLabel={t('Loading','加载')} accountTitle={t('Your little corner','您的专属空间')}/>:children}</main>
     <footer className="desktop-footer"><Link to="/" className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
     <nav className="legal-links" aria-label={t('Legal information','法律信息')}><Link to="/privacy">{t('Privacy','隐私')}</Link><span aria-hidden="true">·</span><Link to="/data-deletion">{t('Data deletion','数据删除')}</Link></nav>
@@ -101,6 +109,6 @@ export function Shell({children}:{children:React.ReactNode}) {
       {error&&<p className="field-error" role="alert">{error}</p>}
       <p className="auth-note">{t('Free to discover. Pay your nailist at your appointment.','免费探索，到店后直接向美甲师付款。')}</p>
     </Modal>
-    <Modal open={noticesOpen} onOpenChange={setNoticesOpen} title={t('Your updates','您的动态')}><div className="notification-list">{notices.data?.notifications.length?notices.data.notifications.map(n=><Link key={n.id} to={merchant?'/merchant':`/bookings/${n.booking_id}`} onClick={()=>setNoticesOpen(false)}><Bell size={20}/><span><strong>{n.title}</strong><small>{n.body}</small></span><ArrowRight size={16}/></Link>):<p className="muted">{t('All caught up. Your booking updates will appear here.','暂无新动态，预约更新会显示在这里。')}</p>}</div></Modal>
+    <Modal open={noticesOpen} onOpenChange={setNoticesOpen} title={t('Your updates','您的动态')}><div className="notification-list">{notices.data?.notifications.length?notices.data.notifications.map(n=><Link key={n.id} to={n.conversation_id?`/messages/${n.conversation_id}`:merchant?'/merchant':n.booking_id?`/bookings/${n.booking_id}`:'/messages'} onClick={()=>setNoticesOpen(false)}><Bell size={20}/><span><strong>{n.title}</strong><small>{n.body}</small></span><ArrowRight size={16}/></Link>):<p className="muted">{t('All caught up. Your booking updates will appear here.','暂无新动态，预约更新会显示在这里。')}</p>}</div></Modal>
   </div>;
 }

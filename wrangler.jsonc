@@ -20,8 +20,8 @@
 		}
 	],
 	"vars": {
-		"DEMO_MODE": "false",
-		"APP_URL": "https://hotlah.site",
+		"DEMO_MODE": "true",
+		"APP_URL": "http://127.0.0.1:5173",
 		"EMAIL_FROM": "Hotlah <bookings@hotlah.site>",
 		"ADMIN_EMAILS": "hotlahmalaysia@gmail.com"
 	},
@@ -31,12 +31,6 @@
 			"database_name": "hotlah",
 			"database_id": "f86c07c6-bd81-41ea-a82e-8627ca9d229b",
 			"migrations_dir": "database/migrations"
-		},
-		{
-			"binding": "hotlah",
-			"database_name": "hotlah",
-			"database_id": "f86c07c6-bd81-41ea-a82e-8627ca9d229b",
-			"remote": true
 		}
 	],
 	"r2_buckets": [

@@ -6,6 +6,7 @@ export default [
   route('bookings','routes/bookings.tsx'),
   route('bookings/:id','routes/conversation.tsx'),
   route('messages','routes/messages.tsx'),
+  route('messages/:id','routes/support-conversation.tsx'),
   route('account','routes/account.tsx'),
   route('join','routes/join.tsx'),
   route('merchant','routes/merchant.tsx'),

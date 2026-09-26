@@ -54,10 +54,10 @@ export async function getSlots(env: Env, service: Service, date: string) {
   const occupied = await env.DB.prepare(`SELECT start_minute,end_minute FROM bookings WHERE merchant_id=? AND date=? AND status IN ('approved','completed') UNION ALL SELECT start_minute,end_minute FROM blocks WHERE merchant_id=? AND date=?`).bind(service.merchant_id, date, service.merchant_id, date).all<{ start_minute: number; end_minute: number }>();
   return computeSlots(JSON.parse(merchant!.hours), date, service.duration, service.buffer, occupied.results);
 }
-export async function notify(env: Env, userId: string, bookingId: string, title: string, body: string) {
+export async function notify(env: Env, userId: string, bookingId: string | null, title: string, body: string, conversationId: string | null = null) {
   await env.DB.batch([
-    env.DB.prepare('INSERT INTO notifications(id,user_id,booking_id,title,body) VALUES(?,?,?,?,?)').bind(crypto.randomUUID(), userId, bookingId, title, body),
-    env.DB.prepare('INSERT INTO outbox(id,user_id,subject,body) VALUES(?,?,?,?)').bind(crypto.randomUUID(), userId, title, body),
+    env.DB.prepare('INSERT INTO notifications(id,user_id,booking_id,conversation_id,title,body) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(), userId, bookingId, conversationId, title, body),
+    env.DB.prepare('INSERT INTO outbox(id,user_id,conversation_id,subject,body) VALUES(?,?,?,?,?)').bind(crypto.randomUUID(), userId, conversationId, title, body),
   ]);
 }
 export async function maintain(env: Env) {
@@ -69,11 +69,11 @@ export async function maintain(env: Env) {
   // Unapproved requests remain pending, including subscription-locked requests.
   // Only approved appointments are automatically completed after their booking date.
   if (!env.RESEND_API_KEY || !env.EMAIL_FROM) return;
-  const mail = await env.DB.prepare(`SELECT o.*,u.email FROM outbox o JOIN user u ON u.id=o.user_id WHERE o.sent=0 AND o.attempts<5 ORDER BY o.created_at LIMIT 20`).all<{ id: string; email: string; subject: string; body: string }>();
+  const mail = await env.DB.prepare(`SELECT o.*,u.email FROM outbox o JOIN user u ON u.id=o.user_id WHERE o.sent=0 AND o.attempts<5 ORDER BY o.created_at LIMIT 20`).all<{ id: string; email: string; subject: string; body: string; conversation_id:string|null }>();
   for (const item of mail.results) {
     if (item.email.endsWith('.test')) continue;
     await env.DB.prepare('UPDATE outbox SET attempts=attempts+1 WHERE id=?').bind(item.id).run();
-    const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': item.id }, body: JSON.stringify({ from: env.EMAIL_FROM, to: item.email, subject: item.subject, text: `${item.body}\n\nOpen Hotlah: ${env.APP_URL}/bookings` }) });
+    const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': item.id }, body: JSON.stringify({ from: env.EMAIL_FROM, to: item.email, subject: item.subject, text: `${item.body}\n\nOpen Hotlah: ${env.APP_URL}${item.conversation_id?`/messages/${item.conversation_id}`:'/bookings'}` }) });
     if (response.ok) await env.DB.prepare('UPDATE outbox SET sent=1 WHERE id=?').bind(item.id).run();
   }
 }

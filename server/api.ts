@@ -138,7 +138,7 @@ api.post('/api/bookings', async c => {
   if (/https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(data.message)) throw new HTTPException(400,{message:'Please keep contact details out of the request. Contact options unlock after approval.'});
   const id=uuid();
   const statements=[c.env.DB.prepare('INSERT INTO bookings(id,merchant_id,user_id,service_id,date,start_minute,end_minute,name,price,duration,image,request_key) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,service.merchant_id,actor.id,service.id,data.date,data.minute,data.minute+service.duration+service.buffer,service.name,service.price,service.duration,service.image,data.requestKey)];
-  if(data.message) statements.push(c.env.DB.prepare('INSERT INTO messages(id,booking_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),id,actor.id,data.message));
+  if(data.message) statements.push(c.env.DB.prepare('INSERT INTO messages(id,conversation_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),id,actor.id,data.message));
   try { await c.env.DB.batch(statements); }
   catch(error) {
     if(String(error).includes('UNIQUE')) {
@@ -156,7 +156,7 @@ api.get('/api/bookings/:id', async c => {
   const actor=requireActor(c.get('actor'));
   const row=await ownedBooking(c.env,c.req.param('id'),actor);
   assertMerchantAccess(row,actor);
-  const messages=await c.env.DB.prepare('SELECT m.*,u.name sender_name FROM messages m JOIN user u ON u.id=m.sender_id WHERE m.booking_id=? ORDER BY m.created_at,m.rowid').bind(row.id).all();
+  const messages=await c.env.DB.prepare('SELECT m.*,u.name sender_name FROM messages m JOIN user u ON u.id=m.sender_id WHERE m.conversation_id=? ORDER BY m.created_at,m.rowid').bind(row.id).all();
   return c.json({booking:sanitizeBooking(row,actor),messages:messages.results});
 });
 api.post('/api/bookings/:id/status', async c => {
@@ -180,7 +180,7 @@ api.post('/api/bookings/:id/messages', async c => {
   if(['cancelled','declined','expired'].includes(row.status)) throw new HTTPException(409,{message:'This conversation is closed. You can send a new booking request.'});
   const {body}=z.object({body:z.string().trim().min(1).max(1500)}).parse(await c.req.json());
   if(row.status==='pending' && /https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(body))throw new HTTPException(400,{message:'Contact details unlock after approval. Please keep this conversation in Hotlah for now.'});
-  await c.env.DB.prepare('INSERT INTO messages(id,booking_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),row.id,actor.id,body).run();
+  await c.env.DB.prepare('INSERT INTO messages(id,conversation_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),row.id,actor.id,body).run();
   await notify(c.env,actor.id===row.user_id?row.merchant_user_id:row.user_id!,row.id,'New message','You have a new message in Hotlah.');
   return c.json({ok:true},201);
 });
@@ -202,6 +202,104 @@ api.post('/api/bookings/:id/review', async c => {
   const data=z.object({rating:z.number().int().min(1).max(5),body:z.string().trim().min(5).max(1000)}).parse(await c.req.json());
   await c.env.DB.prepare('INSERT INTO reviews(id,booking_id,rating,body) VALUES(?,?,?,?)').bind(uuid(),row.id,data.rating,data.body).run();
   return c.json({ok:true},201);
+});
+
+type SupportConversation = {id:string;type:'app_feedback'|'customer_service';owner_id:string;subject:string|null;category:string|null;owner_name:string;owner_email:string;merchant_account:number};
+async function ownedSupportConversation(c: Parameters<typeof actorFor>[0], id:string, actor:Actor) {
+  if(!/^[a-f0-9-]{36}$/.test(id))throw new HTTPException(404,{message:'Conversation not found.'});
+  const row=await c.env.DB.prepare(`SELECT c.id,c.type,c.owner_id,c.subject,c.category,u.name owner_name,u.email owner_email,
+    EXISTS(SELECT 1 FROM merchants WHERE user_id=c.owner_id) merchant_account
+    FROM conversations c JOIN user u ON u.id=c.owner_id WHERE c.id=? AND c.type IN ('app_feedback','customer_service')`).bind(id).first<SupportConversation>();
+  if(!row||(row.owner_id!==actor.id&&!isAdmin(actor,c.env,c.get('demo'))))throw new HTTPException(404,{message:'Conversation not found.'});
+  return row;
+}
+async function supportAdminIds(c: Parameters<typeof actorFor>[0]) {
+  const emails=(c.env.ADMIN_EMAILS??'').split(',').map(email=>email.trim().toLowerCase()).filter(Boolean);
+  const conditions=emails.length?`lower(email) IN (${emails.map(()=>'?').join(',')})`:'';
+  const where=c.get('demo')?[conditions,"id='demo-admin'"].filter(Boolean).join(' OR '):conditions;
+  if(!where)return [];
+  const rows=await c.env.DB.prepare(`SELECT id FROM user WHERE ${where}`).bind(...emails).all<{id:string}>();
+  return rows.results.map(row=>row.id);
+}
+async function notifySupportAdmins(c: Parameters<typeof actorFor>[0], actorId:string, conversationId:string, title:string) {
+  for(const id of await supportAdminIds(c))if(id!==actorId)await notify(c.env,id,null,title,'You have a new message in Hotlah.',conversationId);
+}
+
+api.get('/api/conversations',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const merchant=c.req.query('view')==='merchant';
+  const [bookings,support]=await Promise.all([
+    c.env.DB.prepare(`${bookingSql} WHERE ${merchant?'m.user_id':'b.user_id'}=? ORDER BY b.created_at DESC`).bind(actor.id).all<BookingRow>(),
+    c.env.DB.prepare(`SELECT c.id,c.type,c.subject,c.category,c.owner_id,c.created_at,c.updated_at,u.name owner_name,
+      EXISTS(SELECT 1 FROM merchants WHERE user_id=c.owner_id) merchant_account,
+      (SELECT body FROM messages WHERE conversation_id=c.id ORDER BY rowid DESC LIMIT 1) last_message,
+      (SELECT MAX(rowid) FROM messages WHERE conversation_id=c.id) last_message_rowid,
+      (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=c.id AND m.sender_id!=? AND m.rowid>COALESCE((SELECT last_read_rowid FROM conversation_reads r WHERE r.conversation_id=c.id AND r.user_id=?),0)) unread
+      FROM conversations c JOIN user u ON u.id=c.owner_id
+      WHERE c.type IN ('app_feedback','customer_service') AND (c.owner_id=? OR ?=1)
+      ORDER BY c.updated_at DESC LIMIT 100`).bind(actor.id,actor.id,actor.id,Number(isAdmin(actor,c.env,c.get('demo')))).all<SupportConversation & {created_at:string;updated_at:string;last_message:string|null;last_message_rowid:number|null;unread:number}>()
+  ]);
+  const items=[
+    ...bookings.results.map(row=>({kind:'booking' as const,id:row.id,booking:sanitizeBooking(row,actor),updated_at:row.created_at??'',unread:0})),
+    ...support.results.map(row=>({kind:row.type,id:row.id,subject:row.subject,category:row.category,owner_id:row.owner_id,owner_name:row.owner_name,merchant_account:row.merchant_account,last_message:row.last_message,updated_at:row.updated_at,unread:row.unread}))
+  ].sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
+  return c.json({conversations:items});
+});
+api.post('/api/conversations/feedback',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const data=z.object({subject:z.string().trim().min(1).max(120),body:z.string().trim().min(1).max(1500),category:z.enum(['feature_request','ui_ux','bug','merchant_tools','booking_experience','other']).nullable().optional(),requestKey:z.string().uuid()}).parse(await c.req.json());
+  const existing=await c.env.DB.prepare("SELECT id FROM conversations WHERE owner_id=? AND request_key=? AND type='app_feedback'").bind(actor.id,data.requestKey).first<{id:string}>();
+  if(existing)return c.json({id:existing.id,created:false});
+  const id=uuid();
+  try{
+    await c.env.DB.batch([
+      c.env.DB.prepare("INSERT INTO conversations(id,type,owner_id,subject,category,request_key) VALUES(?,'app_feedback',?,?,?,?)").bind(id,actor.id,data.subject,data.category??null,data.requestKey),
+      c.env.DB.prepare('INSERT INTO messages(id,conversation_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),id,actor.id,data.body)
+    ]);
+  }catch(error){
+    if(String(error).includes('UNIQUE')){
+      const duplicate=await c.env.DB.prepare("SELECT id FROM conversations WHERE owner_id=? AND request_key=? AND type='app_feedback'").bind(actor.id,data.requestKey).first<{id:string}>();
+      if(duplicate)return c.json({id:duplicate.id,created:false});
+    }
+    throw error;
+  }
+  await notifySupportAdmins(c,actor.id,id,'New Hotlah feedback');
+  return c.json({id,created:true},201);
+});
+api.post('/api/conversations/customer-service',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const id=uuid();
+  const result=await c.env.DB.prepare("INSERT OR IGNORE INTO conversations(id,type,owner_id) VALUES(?,'customer_service',?)").bind(id,actor.id).run();
+  const row=await c.env.DB.prepare("SELECT id FROM conversations WHERE type='customer_service' AND owner_id=?").bind(actor.id).first<{id:string}>();
+  if(!row)throw new HTTPException(500,{message:'Could not open Customer Service. Please try again.'});
+  return c.json({id:row.id,created:!!result.meta.changes},result.meta.changes?201:200);
+});
+api.get('/api/conversations/:id',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const conversation=await ownedSupportConversation(c,c.req.param('id'),actor);
+  const admin=isAdmin(actor,c.env,c.get('demo'));
+  const messages=await c.env.DB.prepare('SELECT m.id,m.sender_id,m.body,m.created_at,u.name sender_name FROM messages m JOIN user u ON u.id=m.sender_id WHERE m.conversation_id=? ORDER BY m.created_at,m.rowid').bind(conversation.id).all();
+  return c.json({conversation,messages:messages.results.map(message=>({...message,sender_name:!admin&&message.sender_id!==actor.id?'Hotlah Support':message.sender_name}))});
+});
+api.post('/api/conversations/:id/messages',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const conversation=await ownedSupportConversation(c,c.req.param('id'),actor);
+  const {body}=z.object({body:z.string().trim().min(1).max(1500)}).parse(await c.req.json());
+  await c.env.DB.prepare('INSERT INTO messages(id,conversation_id,sender_id,body) VALUES(?,?,?,?)').bind(uuid(),conversation.id,actor.id,body).run();
+  if(actor.id===conversation.owner_id)await notifySupportAdmins(c,actor.id,conversation.id,'New Hotlah message');
+  else await notify(c.env,conversation.owner_id,null,'Hotlah Support replied','You have a new message in Hotlah.',conversation.id);
+  return c.json({ok:true},201);
+});
+api.post('/api/conversations/:id/read',async c=>{
+  const actor=requireActor(c.get('actor'));
+  const conversation=await ownedSupportConversation(c,c.req.param('id'),actor);
+  await c.env.DB.batch([
+    c.env.DB.prepare(`INSERT INTO conversation_reads(conversation_id,user_id,last_read_rowid)
+      VALUES(?,?,COALESCE((SELECT MAX(rowid) FROM messages WHERE conversation_id=?),0))
+      ON CONFLICT(conversation_id,user_id) DO UPDATE SET last_read_rowid=MAX(last_read_rowid,excluded.last_read_rowid)`).bind(conversation.id,actor.id,conversation.id),
+    c.env.DB.prepare('UPDATE notifications SET read=1 WHERE user_id=? AND conversation_id=?').bind(actor.id,conversation.id)
+  ]);
+  return c.json({ok:true});
 });
 api.get('/api/notifications', async c => {
   const actor=requireActor(c.get('actor'));

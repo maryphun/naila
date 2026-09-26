@@ -13,3 +13,7 @@ export function rememberCatalog(value:Catalog):void {
   if(recentCatalog?.value.services===value.services)return;
   recentCatalog={value,at:Date.now()};
 }
+
+export function invalidateCatalog():void {
+  recentCatalog=null;
+}

@@ -24,7 +24,11 @@ export interface Booking {
   address?: string; contact_available?: boolean; policy?: string; has_review?: number;
 }
 export interface Message { id: string; sender_id: string; body: string; created_at: string; sender_name: string }
-export interface Notice { id: string; title: string; body: string; booking_id: string; read: number; created_at: string }
+export interface SupportConversation { id:string;type:'app_feedback'|'customer_service';owner_id:string;owner_name:string;owner_email:string;merchant_account:number;subject:string|null;category:string|null }
+export type InboxConversation =
+  | {kind:'booking';id:string;booking:Booking;updated_at:string;unread:number}
+  | {kind:'app_feedback'|'customer_service';id:string;subject:string|null;category:string|null;owner_id:string;owner_name:string;merchant_account:number;last_message:string|null;updated_at:string;unread:number};
+export interface Notice { id: string; title: string; body: string; booking_id: string|null; conversation_id:string|null; read: number; created_at: string }
 export interface SessionInfo {
   user: { id: string; name: string; email: string; image?: string | null } | null;
   merchant: Merchant | null; demo: boolean; admin: boolean;

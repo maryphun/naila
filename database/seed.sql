@@ -21,5 +21,5 @@ INSERT OR IGNORE INTO bookings(id,merchant_id,user_id,service_id,date,start_minu
  ('demo-booking','studio-mei','demo-customer','french-gel',date('now','+8 hours','+2 days'),840,930,'French gel manicure',8800,75,'/images/french.webp','seed-alicia'),
  ('demo-confirmed','studio-mei','demo-customer-2','glazed-pearl',date('now','+8 hours'),630,720,'Glazed pearl manicure',9800,75,'/images/glazed.webp','seed-sarah');
 UPDATE bookings SET status='approved' WHERE id='demo-confirmed' AND status='pending';
-INSERT OR IGNORE INTO messages(id,booking_id,sender_id,body) VALUES('demo-message','demo-booking','demo-customer','Hi Mei, could I have a shorter almond shape?');
+INSERT OR IGNORE INTO messages(id,conversation_id,sender_id,body) VALUES('demo-message','demo-booking','demo-customer','Hi Mei, could I have a shorter almond shape?');
 INSERT OR IGNORE INTO notifications(id,user_id,booking_id,title,body) VALUES('demo-notification','demo-merchant','demo-booking','New booking request','You have a new booking request to review.');
