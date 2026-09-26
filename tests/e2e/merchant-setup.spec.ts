@@ -1,4 +1,5 @@
 import { test,expect } from '@playwright/test';
+import { localDate } from '../../app/lib/types';
 import type { Merchant,Service } from '../../app/lib/types';
 
 test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('hotlah:style-seen','1'));});
@@ -14,10 +15,14 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await page.goto('/join');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
   await page.getByLabel('Studio / nailist name').fill('Little Moon Nails');
-  await page.getByRole('radio',{name:/Home studio/}).check();
+  await expect(page.getByText('Just your name and how you work.')).toHaveCount(0);
+  await expect(page.getByRole('checkbox',{name:/Home studio/})).toBeChecked();
+  await page.getByRole('checkbox',{name:/Nail studio/}).check();
+  await expect(page.getByRole('checkbox',{name:/Mobile nailist/})).toBeDisabled();
   await page.screenshot({path:'.impeccable/review/registration-390.png',fullPage:true});
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await page.getByLabel('Exact address').fill('12 Example Street, Petaling Jaya');
+  await page.getByLabel('Any link to your business? (optional)').fill('https://instagram.com/littlemoonnails');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('Choose at least one specialty.');
@@ -29,6 +34,17 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await expect(page.getByLabel('Studio / nailist name')).toHaveValue('Little Moon Nails');
   for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('switch',{name:/Automatically approve/})).not.toBeChecked();
+  for(const width of [390,320]){
+    await page.setViewportSize({width,height:844});
+    const open=await page.getByRole('textbox',{name:'Open',exact:true}).boundingBox();
+    const close=await page.getByRole('textbox',{name:'Close',exact:true}).boundingBox();
+    expect(open).not.toBeNull();expect(close).not.toBeNull();
+    expect(open!.x+open!.width<=close!.x||open!.y+open!.height<=close!.y).toBe(true);
+    expect(open!.x).toBeGreaterThanOrEqual(0);
+    expect(close!.x+close!.width).toBeLessThanOrEqual(width);
+    await page.screenshot({path:`.impeccable/review/registration-hours-${width}.png`,fullPage:true});
+  }
+  await page.setViewportSize({width:390,height:844});
   await page.getByRole('textbox',{name:'Close',exact:true}).fill('09:00');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('closing time after opening');
@@ -37,7 +53,7 @@ test('guided registration preserves a draft, validates steps and submits for rev
   await expect(page.getByRole('heading',{name:'A final look before you join.'})).toBeVisible();
   await page.getByRole('button',{name:'Submit for review'}).click();
   await expect(page.getByRole('alert')).toContainText('Please try again shortly.');
-  expect(payload).toMatchObject({name:'Little Moon Nails',type:'home',styles:['French','Other'],auto_approve:false,address:'12 Example Street, Petaling Jaya'});
+  expect(payload).toMatchObject({name:'Little Moon Nails',work_types:['home','studio'],shop_link:'https://instagram.com/littlemoonnails',styles:['French','Other'],auto_approve:false,address:'12 Example Street, Petaling Jaya'});
   expect(payload).not.toHaveProperty('approved');
   await expect(page.getByRole('button',{name:'Submit for review'})).toBeEnabled();
 });
@@ -77,14 +93,78 @@ test('merchant profile updates persist and reject public contact details',async(
   try{
     await page.goto('/merchant/business?tab=profile');
     await page.getByLabel('Studio / nailist name').fill('Studio Mei Updated');
-    for(let i=0;i<4;i++)await page.getByRole('button',{name:'Continue',exact:true}).click();
+    await page.getByRole('checkbox',{name:/Mobile nailist/}).check();
+    await expect(page.getByRole('checkbox',{name:/Nail studio/})).toBeDisabled();
+    await page.getByRole('button',{name:'Continue',exact:true}).click();
+    await page.getByLabel('Any link to your business? (optional)').fill('https://instagram.com/studiomei');
+    for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue',exact:true}).click();
     await page.getByRole('button',{name:'Save changes',exact:true}).click();
     await expect(page.locator('.business-identity')).toContainText('Studio Mei Updated');
     await page.reload();
     await expect(page.getByLabel('Studio / nailist name')).toHaveValue('Studio Mei Updated');
+    const saved=(await (await page.request.get('/api/merchant')).json()).merchant as Merchant;
+    expect(saved.work_types).toContain('mobile');
+    expect(saved.shop_link).toBe('https://instagram.com/studiomei');
+    const publicMerchant=(await (await page.request.get('/api/merchants/'+merchant.id)).json()).merchant as Record<string,unknown>;
+    expect(publicMerchant).not.toHaveProperty('shop_link');
+    const publicServices=(await (await page.request.get('/api/catalog')).json()).services as (Service&Record<string,unknown>)[];
+    expect(publicServices.find(service=>service.merchant_id===merchant.id)?.work_types).toContain('mobile');
+    expect(publicServices.find(service=>service.merchant_id===merchant.id)).not.toHaveProperty('shop_link');
+    await page.goto('/');
+    await page.getByRole('button',{name:'Filters',exact:true}).click();
+    await page.getByLabel('Studio type').selectOption('mobile');
+    await page.getByRole('button',{name:/Show \d+ services/}).click();
+    await page.getByRole('radiogroup',{name:'Discover by'}).getByRole('radio',{name:'Nailists'}).click();
+    await expect(page.locator('.merchant-card').filter({hasText:'Studio Mei Updated'})).toBeVisible();
+    await page.request.post('/api/demo/login',{data:{role:'admin'}});
+    try{
+      const reviewed=(await (await page.request.get('/api/admin/merchants/'+merchant.id)).json()).merchant as Merchant;
+      expect(reviewed.shop_link).toBe('https://instagram.com/studiomei');
+    }finally{await page.request.post('/api/demo/login',{data:{role:'merchant'}});}
     const invalid=await page.request.patch('/api/merchant',{data:{...restore,bio:'Find me at https://example.com'}});
     expect(invalid.status()).toBe(400);
   }finally{expect((await page.request.patch('/api/merchant',{data:restore})).ok()).toBe(true);}
+});
+
+test('merchant can block a whole day or a specific time',async({page})=>{
+  await page.request.post('/api/demo/login',{data:{role:'merchant'}});
+  const date=localDate(9);
+  const original=(await (await page.request.get('/api/merchant')).json()).blocks as {id:string;date:string}[];
+  const originalIds=new Set(original.map(block=>block.id));
+  try{
+    await page.goto('/merchant/calendar');
+    await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
+    await page.getByLabel('Choose date').fill(date);
+    await expect(page.getByLabel('Choose date')).toHaveValue(date);
+    await page.getByRole('button',{name:'Block time'}).click();
+    const dialog=page.getByRole('dialog',{name:'A little time off'});
+    await expect(dialog.getByLabel('From')).toBeVisible();
+    await dialog.getByRole('radiogroup',{name:'Block duration'}).getByRole('radio',{name:'Whole day'}).click();
+    await expect(dialog.getByLabel('From')).toHaveCount(0);
+    for(const width of [390,320]){
+      await page.setViewportSize({width,height:844});
+      expect(await dialog.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
+      await page.screenshot({path:`.impeccable/review/whole-day-block-${width}.png`,fullPage:false});
+    }
+    await page.setViewportSize({width:390,height:844});
+    await dialog.getByRole('button',{name:'Block whole day'}).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'Remove whole-day block'})).toBeVisible();
+    const availability=await (await page.request.get(`/api/services/french-gel/availability?date=${date}`)).json() as {slots:{available:boolean}[]};
+    expect(availability.slots.length).toBeGreaterThan(0);
+    expect(availability.slots.every(slot=>!slot.available)).toBe(true);
+    await page.getByRole('button',{name:'Remove whole-day block'}).click();
+    await expect(page.getByRole('button',{name:'Remove whole-day block'})).toHaveCount(0);
+    await page.getByRole('button',{name:'Block time'}).click();
+    await expect(dialog.getByLabel('From')).toBeVisible();
+    await dialog.getByRole('button',{name:'Block this time'}).click();
+    await expect(page.getByText('13:00 – 14:00')).toBeVisible();
+    await page.getByRole('button',{name:'Remove time block'}).click();
+    await expect(page.getByText('13:00 – 14:00')).toHaveCount(0);
+  }finally{
+    const blocks=(await (await page.request.get('/api/merchant')).json()).blocks as {id:string;date:string}[];
+    for(const block of blocks.filter(block=>block.date===date&&!originalIds.has(block.id)))await page.request.delete(`/api/merchant/blocks/${block.id}`,{data:{}});
+  }
 });
 
 test('location picker stages selections, zooms and filters with a 1 km slider',async({page,context})=>{

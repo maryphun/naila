@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import { useApp } from '../lib/context';
-import { money, STYLE_ZH } from '../lib/types';
+import { MERCHANT_TYPE_LABELS, money, STYLE_ZH } from '../lib/types';
 import type { Service } from '../lib/types';
 
 export function MerchantCard({services}:{services:Service[]}) {
@@ -10,12 +10,13 @@ export function MerchantCard({services}:{services:Service[]}) {
   const price=Math.min(...services.map(service=>service.price));
   const styles=[...new Set(services.map(service=>service.style))].slice(0,3);
   const available=services.some(service=>!!service.next_available);
+  const workTypes=lead.work_types?.length?lead.work_types:[lead.type];
   return <article className="service-card merchant-card">
     <Link className="service-photo" to={`/nailists/${lead.merchant_id}`} aria-label={t(`View ${lead.merchant_name}'s menu`,`查看 ${lead.merchant_name} 的服务菜单`)}>
       <img src={lead.image} alt="" width="1000" height="750" loading="lazy"/>
     </Link>
     <section className="service-content">
-      <p className="service-meta"><span>{t(lead.type==='home'?'Home studio':lead.type==='mobile'?'Mobile nailist':'Nail studio',lead.type==='home'?'家庭工作室':lead.type==='mobile'?'上门美甲师':'美甲店')}</span><span>{services.length} {t(services.length===1?'matching service':'matching services','项匹配服务')}</span></p>
+      <p className="service-meta"><span>{workTypes.map(type=>MERCHANT_TYPE_LABELS[type][lang]).join(' · ')}</span><span>{services.length} {t(services.length===1?'matching service':'matching services','项匹配服务')}</span></p>
       <Link className="service-title" to={`/nailists/${lead.merchant_id}`}><h3>{lead.merchant_name}</h3><ArrowUpRight size={20}/></Link>
       <p className="location-line"><MapPin size={14}/>{lead.area}{lead.distance!==undefined&&` · ${lead.distance.toFixed(1)} km`}</p>
       <p className="merchant-specialties">{styles.map(style=>lang==='zh'?STYLE_ZH[style]??style:style).join(' · ')}</p>

@@ -4,7 +4,7 @@ import { Check, MapPin, Star } from 'lucide-react';
 import type { Route } from './+types/nailist';
 import { serverApi } from '../lib/server.server';
 import { useApp } from '../lib/context';
-import { STYLE_ZH } from '../lib/types';
+import { MERCHANT_TYPE_LABELS, STYLE_ZH } from '../lib/types';
 import type { Merchant, Service } from '../lib/types';
 import { post } from '../lib/api';
 import { PageHeader } from '../components/ui';
@@ -18,7 +18,7 @@ export default function NailistPage(){
   const {merchant,services,reviews}=useLoaderData<typeof loader>();
   const {t,lang}=useApp();
   useEffect(()=>{post('/api/events',{merchantId:merchant.id,kind:'view'}).catch(()=>{});},[merchant.id]);
-  const label=t(merchant.type==='home'?'Home studio':merchant.type==='mobile'?'Mobile nailist':'Nail studio',merchant.type==='home'?'家庭工作室':merchant.type==='mobile'?'上门美甲师':'美甲店');
+  const label=(merchant.work_types?.length?merchant.work_types:[merchant.type]).map(type=>MERCHANT_TYPE_LABELS[type][lang]).join(' · ');
   return <article className="nailist-page">
     <PageHeader title={t('Nailist','美甲师')}/>
     <img className="nailist-hero" src={services[0].image} alt={t(`${merchant.name}'s nail work`,`${merchant.name} 的美甲作品`)} width="1000" height="750"/>

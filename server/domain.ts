@@ -1,12 +1,17 @@
 import { HTTPException } from 'hono/http-exception';
-import type { Booking, Service } from '../app/lib/types';
+import type { Booking, MerchantType, Service } from '../app/lib/types';
 import type { Actor, Env } from './env';
 
-export const publicCatalogueSql = `SELECT s.*,m.name merchant_name,m.area,m.type,m.lat,m.lng FROM services s JOIN merchants m ON m.id=s.merchant_id WHERE m.approved=1 AND s.active=1`;
+export const publicCatalogueSql = `SELECT s.*,m.name merchant_name,m.area,m.type,m.work_types merchant_work_types,m.lat,m.lng FROM services s JOIN merchants m ON m.id=s.merchant_id WHERE m.approved=1 AND s.active=1`;
 export const bookingSql = `SELECT b.*,m.name merchant_name,m.area,m.type,m.address,m.phone,m.policy,m.user_id merchant_user_id,m.subscribed,u.name customer_name,(SELECT COUNT(*) FROM reviews r WHERE r.booking_id=b.id) has_review FROM bookings b JOIN merchants m ON m.id=b.merchant_id JOIN user u ON u.id=b.user_id`;
 export interface BookingRow extends Booking { merchant_user_id: string; phone: string; subscribed: number; request_key: string }
+export function merchantWorkTypes(row: {work_types?:unknown;merchant_work_types?:unknown;type?:unknown}): MerchantType[] {
+  const values=JSON.parse(String(row.work_types??row.merchant_work_types??'[]')) as unknown;
+  const types=Array.isArray(values)?values.filter((type):type is MerchantType=>type==='home'||type==='studio'||type==='mobile'):[];
+  return types.length?types:[row.type==='studio'||row.type==='mobile'?row.type:'home'];
+}
 export function publicMerchant(row: Record<string, unknown>) {
-  return { id: row.id, name: row.name, area: row.area, type: row.type, bio: row.bio,
+  return { id: row.id, name: row.name, area: row.area, type: row.type, work_types: merchantWorkTypes(row), bio: row.bio,
     styles: JSON.parse(String(row.styles)), hours: JSON.parse(String(row.hours)), policy: row.policy };
 }
 export function sanitizeBooking(row: BookingRow, actor: Actor): Booking {

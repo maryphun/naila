@@ -23,10 +23,15 @@ function tabMatches(pathname:string,search:string,to:string,end?:boolean){
 }
 
 function PendingTabScreen({to,label,loadingLabel,accountTitle}:{to:string;label:string;loadingLabel:string;accountTitle:string}){
+  const [showLoading,setShowLoading]=useState(false);
+  useEffect(()=>{
+    const timer=window.setTimeout(()=>setShowLoading(true),500);
+    return ()=>window.clearTimeout(timer);
+  },[]);
   const explore=to==='/';
   const account=to==='/account';
-  return <section className={`${explore?'explore-page':account?'account-page':''} tab-pending-screen`} role="status" aria-label={`${loadingLabel} ${label}`}>
-    {explore?<VStack gap={3} className="tab-pending-discovery">
+  return <section className={`${explore?'explore-page':account?'account-page':''} tab-pending-screen${showLoading?' is-loading':''}`} role={showLoading?'status':undefined} aria-label={showLoading?`${loadingLabel} ${label}`:undefined}>
+    {showLoading&&(explore?<VStack gap={3} className="tab-pending-discovery">
       <Skeleton width="64%" height="var(--spacing-9)" radius="rounded"/>
       <HStack gap={2} width="100%"><Skeleton width="82%" height="var(--spacing-9)" radius="rounded"/><Skeleton width="var(--spacing-9)" height="var(--spacing-9)" radius="rounded"/></HStack>
       <HStack gap={2} width="100%"><Skeleton width="37%" height="var(--spacing-9)" radius="rounded"/><Skeleton width="28%" height="var(--spacing-9)" radius="rounded"/></HStack>
@@ -40,7 +45,7 @@ function PendingTabScreen({to,label,loadingLabel,accountTitle}:{to:string;label:
         <Skeleton width="100%" height="var(--spacing-9)" radius="rounded"/>
         <Skeleton width="58%" height="var(--spacing-6)" radius="rounded"/>
       </VStack>
-    </>}
+    </>)}
   </section>;
 }
 
@@ -83,7 +88,7 @@ export function Shell({children}:{children:React.ReactNode}) {
       {session.user?<button className="icon-button notification-button" onClick={()=>{setNoticesOpen(true);post('/api/notifications/read').then(notices.refresh);}} aria-label={t('Notifications','通知')}><Bell size={21}/>{unread>0&&<span className="notification-dot"/>}</button>:<button className="desktop-signin" onClick={()=>setAuthOpen(true)}>{t('Sign in','登录')}<ArrowUpRight size={16}/></button>}
       {merchant&&<Link className="icon-button" to="/" aria-label={t('Switch to customer view','切换顾客视图')}><ArrowLeftRight size={20}/></Link>}</div>
     </div></header>
-    <main id="main-content" className="main-content">{pendingScreen?<PendingTabScreen to={pendingScreen.to} label={pendingScreen.label} loadingLabel={t('Loading','加载')} accountTitle={t('Your little corner','您的专属空间')}/>:children}</main>
+    <main id="main-content" className="main-content">{pendingScreen?<PendingTabScreen key={pendingScreen.to} to={pendingScreen.to} label={pendingScreen.label} loadingLabel={t('Loading','加载')} accountTitle={t('Your little corner','您的专属空间')}/>:children}</main>
     <footer className="desktop-footer"><Link to="/" className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
     <nav className="legal-links" aria-label={t('Legal information','法律信息')}><Link to="/privacy">{t('Privacy','隐私')}</Link><span aria-hidden="true">·</span><Link to="/data-deletion">{t('Data deletion','数据删除')}</Link></nav>
     {session.demo&&<div className="preview-label">{t('Local preview · example studios and prices','本地预览 · 示例工作室及价格')}</div>}

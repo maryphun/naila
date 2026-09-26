@@ -1,17 +1,20 @@
 export type Language = 'en' | 'zh';
 export type BookingStatus = 'pending' | 'approved' | 'completed' | 'cancelled' | 'declined' | 'expired';
 export type MerchantType = 'home' | 'studio' | 'mobile';
+export const MERCHANT_TYPE_LABELS: Record<MerchantType,{en:string;zh:string}> = {
+  home:{en:'Home studio',zh:'家庭工作室'}, studio:{en:'Nail studio',zh:'美甲店'}, mobile:{en:'Mobile nailist',zh:'上门美甲师'}
+};
 export interface Service {
   id: string; merchant_id: string; name: string; name_zh: string; description: string;
   price: number; duration: number; buffer: number; image: string; style: string; shape: string;
-  active: number; promoted: number; merchant_name: string; area: string; type: MerchantType;
+  active: number; promoted: number; merchant_name: string; area: string; type: MerchantType; work_types?: MerchantType[];
   lat: number; lng: number; distance?: number;
   next_available?: {date:string;minute:number} | null;
 }
 export interface Merchant {
-  id: string; name: string; area: string; type: MerchantType; bio: string; styles: string[];
+  id: string; name: string; area: string; type: MerchantType; work_types: MerchantType[]; bio: string; styles: string[];
   hours: { open: string; close: string; days: number[] }; policy: string;
-  auto_approve?: number; approved?: number; subscribed?: number; address?: string; phone?: string;
+  auto_approve?: number; approved?: number; subscribed?: number; address?: string; phone?: string; shop_link?: string;
 }
 export interface Booking {
   id: string; merchant_id?: string; user_id?: string; service_id?: string; date?: string;

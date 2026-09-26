@@ -305,6 +305,8 @@ p{line-height:1.65}
 .tab-pending-discovery{padding-block:var(--spacing-1-5)}
 .tab-pending-photo{width:100%;aspect-ratio:1.55;margin:0;overflow:hidden;border-radius:var(--radius)}
 .tab-pending-screen .astryx-skeleton{background-color:var(--line)}
+.tab-pending-screen.is-loading{animation:tab-pending-reveal var(--duration-fast-max) var(--ease-standard) both}
+@keyframes tab-pending-reveal{from{opacity:0}to{opacity:1}}
 .saved-services-loading{width:100%;aspect-ratio:1.2;overflow:hidden;border-radius:var(--radius)}
 .saved-services-loading .astryx-skeleton{background-color:var(--line)}
 
@@ -513,3 +515,10 @@ button.option-row:active,.option-row[href]:active{transform:scale(.99)}
   .header-actions .icon-button{width:var(--spacing-10);height:var(--spacing-10)}
   .language-button{min-height:var(--spacing-10);padding-inline:var(--spacing-2)}
 }
+
+.choice-hint{margin:calc(var(--spacing-2) * -1) 0 var(--spacing-3);color:var(--muted);font-size:var(--font-size-sm)}
+.choice-row:has(input:disabled){opacity:.55;cursor:default}
+.merchant-hours-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 152px),1fr));gap:var(--spacing-4);align-items:start}
+.merchant-hours-grid .field{min-width:0;text-align:center}
+.merchant-hours-grid input[type=time]{box-sizing:border-box;min-width:0;max-width:100%;padding-inline:var(--spacing-2);text-align:center}
+.business-overview>.text-button{display:flex;width:max-content;margin-inline:auto}

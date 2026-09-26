@@ -5,7 +5,7 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { sign } from 'hono/jwt';
 import { z } from 'zod';
 import { actorFor, auth, isAdmin, isLocalDemo } from './auth';
-import { assertMerchantAccess, bookingSql, checkFuture, computeSlots, dayInMalaysia, getSlots, minutes, notify, ownedBooking, publicCatalogueSql, publicMerchant, sanitizeBooking, validDate } from './domain';
+import { assertMerchantAccess, bookingSql, checkFuture, computeSlots, dayInMalaysia, getSlots, merchantWorkTypes, minutes, notify, ownedBooking, publicCatalogueSql, publicMerchant, sanitizeBooking, validDate } from './domain';
 import { localDate } from '../app/lib/types';
 import type { BookingRow } from './domain';
 import type { ApiContext, Actor } from './env';
@@ -68,19 +68,20 @@ api.post('/api/logout', async c => {
   return response;
 });
 api.get('/api/catalog', async c => {
-  const result = await c.env.DB.prepare(`${publicCatalogueSql} ORDER BY s.promoted DESC,s.rowid`).all<Service>();
+  const result = await c.env.DB.prepare(`${publicCatalogueSql} ORDER BY s.promoted DESC,s.rowid`).all<Service & {merchant_work_types:string}>();
   const first=localDate(),last=localDate(13);
   const hours=await c.env.DB.prepare('SELECT id,hours FROM merchants WHERE approved=1').all<{id:string;hours:string}>();
   const occupied=await c.env.DB.prepare(`SELECT merchant_id,date,start_minute,end_minute FROM bookings WHERE status IN ('approved','completed') AND date BETWEEN ? AND ? UNION ALL SELECT merchant_id,date,start_minute,end_minute FROM blocks WHERE date BETWEEN ? AND ?`).bind(first,last,first,last).all<{merchant_id:string;date:string;start_minute:number;end_minute:number}>();
   const schedules=new Map(hours.results.map(m=>[m.id,JSON.parse(m.hours)]));
   const services=result.results.map(service=>{
+    const {merchant_work_types,...publicService}=service;
     let next_available:Service['next_available']=null;
     for(let offset=0;offset<14&&!next_available;offset++){
       const date=localDate(offset);
       const slot=computeSlots(schedules.get(service.merchant_id),date,service.duration,service.buffer,occupied.results.filter(b=>b.merchant_id===service.merchant_id&&b.date===date)).find(s=>s.available);
       if(slot)next_available={date,minute:slot.minute};
     }
-    return {...service,next_available};
+    return {...publicService,work_types:merchantWorkTypes(service),next_available};
   });
   return c.json({ services, demo: c.get('demo') });
 });
@@ -213,7 +214,8 @@ api.post('/api/notifications/read', async c => {
 });
 
 const hoursSchema=z.object({open:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),close:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),days:z.array(z.number().int().min(0).max(6)).min(1)}).refine(h=>minutes(h.close)>minutes(h.open),'Closing time must be after opening time.');
-const merchantSchema=z.object({name:z.string().trim().min(2).max(80),area:z.string().min(2).max(100),type:z.enum(['home','studio','mobile']),bio:z.string().trim().max(1200),address:z.string().trim().min(5).max(250),phone:z.string().regex(/^(\+?\d{9,15})?$/,'Use a phone number with country code, e.g. +60123456789.'),styles:z.array(z.string().max(30)).min(1).max(15),hours:hoursSchema,policy:z.string().trim().min(10).max(1500),auto_approve:z.boolean()});
+const merchantTypeSchema=z.enum(['home','studio','mobile']);
+const merchantSchema=z.object({name:z.string().trim().min(2).max(80),area:z.string().min(2).max(100),work_types:z.array(merchantTypeSchema).min(1).max(2).refine(values=>new Set(values).size===values.length,'Choose distinct ways of working.'),shop_link:z.string().trim().max(500).refine(value=>{if(!value)return true;try{return ['http:','https:'].includes(new URL(value).protocol);}catch{return false;}},'Enter a valid website or social link.'),bio:z.string().trim().max(1200),address:z.string().trim().min(5).max(250),phone:z.string().regex(/^(\+?\d{9,15})?$/,'Use a phone number with country code, e.g. +60123456789.'),styles:z.array(z.string().max(30)).min(1).max(15),hours:hoursSchema,policy:z.string().trim().min(10).max(1500),auto_approve:z.boolean()});
 const adminMerchantSchema=merchantSchema.extend({lat:z.number().min(-90).max(90),lng:z.number().min(-180).max(180)});
 api.get('/api/merchant', async c => {
   const actor=requireActor(c.get('actor'));
@@ -221,7 +223,7 @@ api.get('/api/merchant', async c => {
   if(!row)throw new HTTPException(404,{message:'Create your nailist profile first.'});
   const services=await c.env.DB.prepare('SELECT * FROM services WHERE merchant_id=? ORDER BY rowid').bind(row.id).all();
   const blocks=await c.env.DB.prepare('SELECT * FROM blocks WHERE merchant_id=? AND date>=? ORDER BY date,start_minute').bind(row.id,dayInMalaysia()).all();
-  return c.json({merchant:{...publicMerchant(row),address:row.address,phone:row.phone,auto_approve:row.auto_approve,approved:row.approved,subscribed:row.subscribed},services:services.results,blocks:blocks.results});
+  return c.json({merchant:{...publicMerchant(row),address:row.address,phone:row.phone,shop_link:row.shop_link,auto_approve:row.auto_approve,approved:row.approved,subscribed:row.subscribed},services:services.results,blocks:blocks.results});
 });
 api.post('/api/merchant', async c => {
   const actor=requireActor(c.get('actor'));
@@ -230,14 +232,14 @@ api.post('/api/merchant', async c => {
   const existing=await c.env.DB.prepare('SELECT id FROM merchants WHERE user_id=?').bind(actor.id).first<{id:string}>();
   if(existing)throw new HTTPException(409,{message:'You already have a nailist profile.'});
   const id=uuid();
-  await c.env.DB.prepare('INSERT INTO merchants(id,user_id,name,area,type,bio,address,phone,styles,hours,policy,auto_approve) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,actor.id,data.name,data.area,data.type,data.bio,data.address,data.phone,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve)).run();
+  await c.env.DB.prepare('INSERT INTO merchants(id,user_id,name,area,type,work_types,shop_link,bio,address,phone,styles,hours,policy,auto_approve) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,actor.id,data.name,data.area,data.work_types[0],JSON.stringify(data.work_types),data.shop_link,data.bio,data.address,data.phone,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve)).run();
   return c.json({id},201);
 });
 api.patch('/api/merchant', async c => {
   const actor=requireActor(c.get('actor'));
   const data=merchantSchema.parse(await c.req.json());
   if(/https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(`${data.name} ${data.bio} ${data.policy}`))throw new HTTPException(400,{message:'Keep public text free of contact links and phone numbers. Use the private phone field instead.'});
-  const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,bio=?,address=?,phone=?,styles=?,hours=?,policy=?,auto_approve=? WHERE user_id=?').bind(data.name,data.area,data.type,data.bio,data.address,data.phone,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),actor.id).run();
+  const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,work_types=?,shop_link=?,bio=?,address=?,phone=?,styles=?,hours=?,policy=?,auto_approve=? WHERE user_id=?').bind(data.name,data.area,data.work_types[0],JSON.stringify(data.work_types),data.shop_link,data.bio,data.address,data.phone,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),actor.id).run();
   if(!result.meta.changes)throw new HTTPException(404);
   return c.json({ok:true});
 });
@@ -249,9 +251,15 @@ async function merchantId(c: Parameters<typeof actorFor>[0]) {
 }
 api.post('/api/merchant/blocks', async c => {
   const id=await merchantId(c);
-  const data=z.object({date:z.string(),start:z.string().regex(/^\d{2}:\d{2}$/),end:z.string().regex(/^\d{2}:\d{2}$/)}).parse(await c.req.json());
-  if(!validDate(data.date) || data.date<dayInMalaysia() || minutes(data.end)<=minutes(data.start) || minutes(data.end)>1440)throw new HTTPException(400,{message:'Choose a valid date and time range.'});
-  await c.env.DB.prepare('INSERT INTO blocks(id,merchant_id,date,start_minute,end_minute) VALUES(?,?,?,?,?)').bind(uuid(),id,data.date,minutes(data.start),minutes(data.end)).run();
+  const data=z.union([
+    z.object({date:z.string(),allDay:z.literal(true)}),
+    z.object({date:z.string(),start:z.string().regex(/^\d{2}:\d{2}$/),end:z.string().regex(/^\d{2}:\d{2}$/)})
+  ]).parse(await c.req.json());
+  const allDay='allDay' in data;
+  const start=allDay?0:minutes(data.start),end=allDay?1440:minutes(data.end);
+  if(!validDate(data.date) || data.date<dayInMalaysia() || end<=start || end>1440)throw new HTTPException(400,{message:'Choose a valid date and time range.'});
+  try{await c.env.DB.prepare('INSERT INTO blocks(id,merchant_id,date,start_minute,end_minute) VALUES(?,?,?,?,?)').bind(uuid(),id,data.date,start,end).run();}
+  catch(error){if(allDay&&/APPOINTMENT_EXISTS/.test((error as Error).message))throw new HTTPException(409,{message:'A confirmed appointment exists on this day. Choose another date or block only free hours.'});throw error;}
   return c.json({ok:true},201);
 });
 api.delete('/api/merchant/blocks/:id', async c => {
@@ -351,7 +359,7 @@ api.get('/api/admin/merchants/:id', async c => {
     c.env.DB.prepare("SELECT COALESCE(SUM(CASE WHEN kind='impression' THEN 1 ELSE 0 END),0) impressions,COALESCE(SUM(CASE WHEN kind='view' THEN 1 ELSE 0 END),0) views FROM events WHERE merchant_id=? AND day>=?").bind(id,since).first<{impressions:number;views:number}>()
   ]);
   const impressions=eventTotals?.impressions??0,views=eventTotals?.views??0;
-  return c.json({merchant:{...publicMerchant(merchant),address:merchant.address,phone:merchant.phone,lat:merchant.lat,lng:merchant.lng,auto_approve:merchant.auto_approve,approved:merchant.approved,subscribed:merchant.subscribed,created_at:merchant.created_at,owner_name:merchant.owner_name,owner_email:merchant.owner_email},services:services.results,insights:{...(bookingTotals??{}),newCustomers:customers?.count??0,impressions,views,ctr:impressions?Math.round(views/impressions*1000)/10:0}});
+  return c.json({merchant:{...publicMerchant(merchant),address:merchant.address,phone:merchant.phone,shop_link:merchant.shop_link,lat:merchant.lat,lng:merchant.lng,auto_approve:merchant.auto_approve,approved:merchant.approved,subscribed:merchant.subscribed,created_at:merchant.created_at,owner_name:merchant.owner_name,owner_email:merchant.owner_email},services:services.results,insights:{...(bookingTotals??{}),newCustomers:customers?.count??0,impressions,views,ctr:impressions?Math.round(views/impressions*1000)/10:0}});
 });
 api.post('/api/admin/settings', async c => {
   const actor=requireAdmin(c);
@@ -374,7 +382,7 @@ api.patch('/api/admin/merchants/:id', async c => {
   const actor=requireAdmin(c),id=c.req.param('id');
   const data=adminMerchantSchema.parse(await c.req.json());
   if(/https?:\/\/|www\.|\+?\d[\d\s().-]{7,}\d/i.test(`${data.name} ${data.bio} ${data.policy}`))throw new HTTPException(400,{message:'Keep public text free of contact links and phone numbers. Use the private phone field instead.'});
-  const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,bio=?,address=?,phone=?,lat=?,lng=?,styles=?,hours=?,policy=?,auto_approve=? WHERE id=?').bind(data.name,data.area,data.type,data.bio,data.address,data.phone,data.lat,data.lng,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),id).run();
+  const result=await c.env.DB.prepare('UPDATE merchants SET name=?,area=?,type=?,work_types=?,shop_link=?,bio=?,address=?,phone=?,lat=?,lng=?,styles=?,hours=?,policy=?,auto_approve=? WHERE id=?').bind(data.name,data.area,data.work_types[0],JSON.stringify(data.work_types),data.shop_link,data.bio,data.address,data.phone,data.lat,data.lng,JSON.stringify(data.styles),JSON.stringify(data.hours),data.policy,Number(data.auto_approve),id).run();
   if(!result.meta.changes)throw new HTTPException(404,{message:'Merchant not found.'});
   await c.env.DB.prepare('INSERT INTO audit_log(id,actor_id,action,detail) VALUES(?,?,?,?)').bind(uuid(),actor.id,'merchant.profile.updated',JSON.stringify({id,fields:Object.keys(data)})).run();
   return c.json({ok:true});
