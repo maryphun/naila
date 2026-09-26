@@ -14,7 +14,7 @@ describe('availability and privacy',()=>{
 });
 describe('transactional booking invariants',()=>{
  let db:DatabaseSync;
- beforeEach(()=>{db=new DatabaseSync(':memory:');db.exec(readFileSync('database/migrations/0001_initial.sql','utf8'));db.exec(readFileSync('database/seed.sql','utf8'));});
+ beforeEach(()=>{db=new DatabaseSync(':memory:');for(const migration of ['0001_initial.sql','0002_merchant_work_types_and_shop_link.sql','0003_support_conversations.sql'])db.exec(readFileSync(`database/migrations/${migration}`,'utf8'));db.exec(readFileSync('database/seed.sql','utf8'));});
  const insert=(db:DatabaseSync,id:string,user='demo-customer',minute=600)=>db.prepare('INSERT INTO bookings(id,merchant_id,user_id,service_id,date,start_minute,end_minute,name,price,duration,image,request_key) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').run(id,'studio-mei',user,'french-gel','2030-01-01',minute,minute+90,'French',8800,75,'/images/french.webp',id);
  it('counts a returning customer only once',()=>{const before=db.prepare('SELECT COUNT(*) n FROM acquisitions WHERE merchant_id=?').get('studio-mei')!.n;insert(db,'repeat-1');insert(db,'repeat-2');expect(db.prepare('SELECT COUNT(*) n FROM acquisitions WHERE merchant_id=?').get('studio-mei')!.n).toBe(before);});
  it('restores one credit, never duplicates it',()=>{db.exec("UPDATE bookings SET status='cancelled' WHERE id='demo-booking'");expect(db.prepare("SELECT credited FROM acquisitions WHERE booking_id='demo-booking'").get()!.credited).toBe(1);db.exec("UPDATE bookings SET status='declined' WHERE id='demo-booking'");expect(db.prepare("SELECT SUM(credited) n FROM acquisitions WHERE merchant_id='studio-mei'").get()!.n).toBe(1);});

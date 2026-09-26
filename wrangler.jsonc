@@ -20,8 +20,8 @@
 		}
 	],
 	"vars": {
-		"DEMO_MODE": "true",
-		"APP_URL": "http://127.0.0.1:5173",
+		"DEMO_MODE": "false",
+		"APP_URL": "https://hotlah.site",
 		"EMAIL_FROM": "Hotlah <bookings@hotlah.site>",
 		"ADMIN_EMAILS": "hotlahmalaysia@gmail.com"
 	},
