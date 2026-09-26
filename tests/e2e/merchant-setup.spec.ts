@@ -139,8 +139,14 @@ test('merchant can block a whole day or a specific time',async({page})=>{
     await page.getByRole('button',{name:'Block time'}).click();
     const dialog=page.getByRole('dialog',{name:'A little time off'});
     await expect(dialog.getByLabel('From')).toBeVisible();
+    const segments=dialog.getByRole('radiogroup',{name:'Block duration'}).getByRole('radio');
+    const [specificTime,wholeDay]=await Promise.all([segments.nth(0).boundingBox(),segments.nth(1).boundingBox()]);
+    expect(specificTime).not.toBeNull();
+    expect(wholeDay).not.toBeNull();
+    expect(Math.abs(specificTime!.width-wholeDay!.width)).toBeLessThan(1);
     await dialog.getByRole('radiogroup',{name:'Block duration'}).getByRole('radio',{name:'Whole day'}).click();
     await expect(dialog.getByLabel('From')).toHaveCount(0);
+    await expect.poll(async()=>dialog.getByRole('radiogroup',{name:'Block duration'}).evaluate(element=>new DOMMatrixReadOnly(getComputedStyle(element,'::before').transform).m41)).toBeGreaterThan(wholeDay!.width-5);
     for(const width of [390,320]){
       await page.setViewportSize({width,height:844});
       expect(await dialog.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);

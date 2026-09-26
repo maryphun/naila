@@ -40,7 +40,7 @@ export default function Calendar(){
     <Modal open={open} onOpenChange={next=>{if(!busy)setOpen(next);}} title={t('A little time off','留点休息时间')} description={t('Existing confirmed appointments cannot be blocked.','无法屏蔽已确认的预约时段。')}>
       <form className="form-stack" onSubmit={save}>
         <p>{friendlyDate(date,lang)}</p>
-        <HotlahSegmentedControl value={blockMode} onChange={value=>{setBlockMode(value as 'time'|'day');setError('');}} label={t('Block duration','屏蔽范围')} options={[{value:'time',label:t('Specific time','指定时段')},{value:'day',label:t('Whole day','全天')}]} size="sm"/>
+        <HotlahSegmentedControl value={blockMode} onChange={value=>{setBlockMode(value as 'time'|'day');setError('');}} label={t('Block duration','屏蔽范围')} options={[{value:'time',label:t('Specific time','指定时段')},{value:'day',label:t('Whole day','全天')}]} size="sm" layout="fill"/>
         {blockMode==='time'?<div className="form-grid"><label className="field">{t('From','开始')}<input name="start" type="time" defaultValue="13:00" required/></label><label className="field">{t('Until','结束')}<input name="end" type="time" defaultValue="14:00" required/></label></div>:<p className="muted small">{t('No new appointments will be available on this date.','当天将不再开放新预约。')}</p>}
         {error&&<ErrorNotice message={error}/>}
         <button className="button primary full" disabled={busy}>{busy?t('Saving…','保存中…'):blockMode==='day'?t('Block whole day','屏蔽全天'):t('Block this time','屏蔽此时段')}</button>

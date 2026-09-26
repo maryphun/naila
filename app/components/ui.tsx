@@ -25,8 +25,8 @@ export function PageHeader({title,back='/',action}:{title:string;back?:string;ac
   const {t}=useApp();
   return <header className="page-header"><Link to={back} className="icon-button back-button" aria-label={t('Go back','返回')}><ArrowLeft size={23}/></Link><h1>{title}</h1>{action??<span className="header-spacer"/>}</header>;
 }
-export function HotlahSegmentedControl({value,onChange,label,options,size='md',className=''}:{value:string;onChange:(value:string)=>void;label:string;options:{value:string;label:string}[];size?:'sm'|'md'|'lg';className?:string}){
-  return <SegmentedControl value={value} onChange={onChange} label={label} size={size} className={`hotlah-segmented ${className}`}>
+export function HotlahSegmentedControl({value,onChange,label,options,size='md',layout='hug',className=''}:{value:string;onChange:(value:string)=>void;label:string;options:{value:string;label:string}[];size?:'sm'|'md'|'lg';layout?:'hug'|'fill';className?:string}){
+  return <SegmentedControl value={value} onChange={onChange} label={label} size={size} layout={layout} className={`hotlah-segmented ${className}`}>
     {options.map(option=><SegmentedControlItem key={option.value} value={option.value} label={option.label}/>) }
   </SegmentedControl>;
 }
