@@ -73,6 +73,7 @@ export function Shell({children}:{children:React.ReactNode}) {
     setTabIntent({from:routeKey,to});
   };
   const isSelected=(to:string,end?:boolean)=>selectedTo?to===selectedTo:tabMatches(location.pathname,location.search,to,end);
+  const activeTabIndex=items.findIndex(({to,end})=>isSelected(to,end));
   const signIn=async(provider:string)=>{setBusy(provider);setError('');try{const response=await post<{url:string}>('/api/auth/sign-in/social',{provider,callbackURL:location.pathname});if(response.url)window.location.assign(response.url);}catch(e){setError((e as Error).message);}finally{setBusy('');}};
   return <div className={`app-shell ${merchant?'merchant-shell':''}`}>
     <a href="#main-content" className="skip-link">Skip to content</a>
@@ -86,7 +87,7 @@ export function Shell({children}:{children:React.ReactNode}) {
     <footer className="desktop-footer"><Link to="/" className="wordmark" aria-label="Hotlah home"><BrandWordmark/></Link><span>{t('Good nails. Great local talent.','好美甲，就在您身边。')}</span><Link to={session.merchant?'/merchant':'/join'}>{t('For nailists','美甲师入口')}<ArrowUpRight size={15}/></Link></footer>
     <nav className="legal-links" aria-label={t('Legal information','法律信息')}><Link to="/privacy">{t('Privacy','隐私')}</Link><span aria-hidden="true">·</span><Link to="/data-deletion">{t('Data deletion','数据删除')}</Link></nav>
     {session.demo&&<div className="preview-label">{t('Local preview · example studios and prices','本地预览 · 示例工作室及价格')}</div>}
-    <nav className="bottom-nav" aria-label={t('Main navigation','主导航')}>{items.map(({to,label,icon:Icon,end})=><Link key={to} to={to} onClick={event=>selectTab(event,to)} aria-current={isSelected(to,end)?'page':undefined} className={`bottom-link ${isSelected(to,end)?'active':''}`}><span className="nav-icon"><Icon size={23} strokeWidth={1.65}/></span><span>{label}</span></Link>)}</nav>
+    <nav className="bottom-nav" aria-label={t('Main navigation','主导航')} data-active-index={activeTabIndex}><span className="bottom-nav-indicator" aria-hidden="true"/>{items.map(({to,label,icon:Icon,end})=><Link key={to} to={to} onClick={event=>selectTab(event,to)} aria-current={isSelected(to,end)?'page':undefined} className={`bottom-link ${isSelected(to,end)?'active':''}`}><span className="nav-icon"><Icon size={23} strokeWidth={1.65}/></span><span>{label}</span></Link>)}</nav>
     {toastMessage&&<div className="toast" role="status"><Check size={18}/>{toastMessage}</div>}
     <Modal open={authOpen} onOpenChange={setAuthOpen} title={t('A little closer to your next set','离心仪的美甲更近一步')}>
       <div className="auth-buttons">{enabledProviders.map(provider=><button className="button secondary full provider-button" data-provider={provider} key={provider} disabled={!!busy} onClick={()=>signIn(provider)}><ProviderIcon provider={provider}/><span>{t('Continue with','使用')+' '+provider[0].toUpperCase()+provider.slice(1)}</span></button>)}<button className="button secondary full provider-button provider-button-disabled" data-provider="apple" disabled aria-label={t('Continue with Apple, coming soon','使用 Apple 登录，即将推出')}><ProviderIcon provider="apple"/><span>{t('Continue with Apple','使用 Apple 登录')}</span><span className="provider-status">{t('Coming soon','即将推出')}</span></button></div>
