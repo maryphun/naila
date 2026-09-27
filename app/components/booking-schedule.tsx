@@ -8,9 +8,10 @@ import { ErrorNotice, Loading } from './ui';
 
 export type BookingTimeSelection = { date: string; minute: number };
 
-function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
+function ClockPopup({ date, slots, selectedMinute, lang, onSelect, onClose, onError }: {
   date: string;
   slots: AvailabilitySlot[];
+  selectedMinute?: number;
   lang: Language;
   onSelect: (minute: number) => void;
   onClose: () => void;
@@ -22,7 +23,7 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
     let active = true;
     let picker: import('timepicker-ui').TimepickerUI | undefined;
     let observer: MutationObserver | undefined;
-    const initialStart = preferredBookingStart(slots)!;
+    const initialStart = slots.find(slot => slot.minute === selectedMinute && slot.available) ?? preferredBookingStart(slots)!;
     let currentHour = Math.floor(initialStart.minute / 60) * 60;
     let selectedOffset = initialStart.minute % 60;
     const startButtons = new Map<number, HTMLButtonElement>();
@@ -100,6 +101,10 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
       starts.className = 'booking-clock-starts';
       starts.setAttribute('role', 'group');
       starts.setAttribute('aria-label', lang === 'zh' ? '此小时可预约的时间' : 'Available starts in this hour');
+      const context = document.createElement('p');
+      context.className = 'booking-clock-date';
+      context.textContent = `${friendlyDate(date, lang)} · ${lang === 'zh' ? '马来西亚时间' : 'Malaysia time'}`;
+      starts.appendChild(context);
       const label = document.createElement('p');
       label.textContent = lang === 'zh' ? '此小时可预约' : 'Available starts this hour';
       starts.appendChild(label);
@@ -122,13 +127,12 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
         const footer = clockBody?.closest('.tp-ui-wrapper')?.querySelector('.tp-ui-footer');
         if (!footer?.parentElement) return;
         footer.parentElement.insertBefore(starts, footer);
-        document.addEventListener('pointerdown', chooseHour, true);
-        observer?.disconnect();
         updateStarts();
       };
       observer = new MutationObserver(attachStarts);
       observer.observe(document.body, { childList: true, subtree: true });
-      picker.open();
+      document.addEventListener('pointerdown', chooseHour, true);
+      picker.open(attachStarts);
       attachStarts();
     }).catch(() => {
       if (active) {
@@ -144,7 +148,7 @@ function ClockPopup({ date, slots, lang, onSelect, onClose, onError }: {
       picker?.destroy();
       host.current?.replaceChildren();
     };
-  }, [date, slots, lang, onSelect, onClose, onError]);
+  }, [date, slots, selectedMinute, lang, onSelect, onClose, onError]);
 
   return <section ref={host} className="booking-clock-host" aria-label={friendlyDate(date, lang)} />;
 }
@@ -178,7 +182,6 @@ export function BookingSchedule({ serviceId, workingDays, price, lang, selection
       .then(result => {
         if (controller.signal.aborted) return;
         setSlots(result.slots);
-        setClockOpen(result.slots.some(slot => slot.available));
       })
       .catch(cause => {
         if (!controller.signal.aborted) setError(cause.message);
@@ -204,7 +207,7 @@ export function BookingSchedule({ serviceId, workingDays, price, lang, selection
       <h2 id="booking-schedule-title">{lang === 'zh' ? '选择预约日期' : 'Choose your day'}</h2>
       <CalendarDays aria-hidden="true" size={23} />
     </header>
-    <p className="schedule-intro">{lang === 'zh' ? '先选日期，再从时钟中挑选可预约的开始时间。' : 'Pick a day first, then choose an available start time on the clock.'}</p>
+    <p className="schedule-intro">{lang === 'zh' ? '选择工作日以查看可预约时间。' : 'Choose a working day to check its available times.'}</p>
     <Calendar
       mode="single"
       min={today as ISODateString}
@@ -214,8 +217,9 @@ export function BookingSchedule({ serviceId, workingDays, price, lang, selection
       onChange={value => chooseDate(value as ISODateString)}
       weekStartsOn="mon"
       hasOutsideDays={false}
+      hasVariableRowCount
     />
-    <p className="schedule-key">{lang === 'zh' ? '变灰的日期是美甲师休息日，或不在预约期限内。' : 'Dimmed dates are studio days off or outside the booking window.'}</p>
+    <p className="schedule-key">{lang === 'zh' ? '变灰日期不可选；其他日期可能已约满，选择后即可查看。' : 'Dimmed dates cannot be selected. Other dates may be fully booked; choose one to check.'}</p>
     {date && <section className="schedule-time-stage" aria-live="polite">
       <header className="schedule-heading schedule-heading-secondary">
         <strong className="schedule-step">02</strong>
@@ -231,6 +235,7 @@ export function BookingSchedule({ serviceId, workingDays, price, lang, selection
       {clockOpen && !loading && openSlots.length > 0 && <ClockPopup
         date={date}
         slots={slots}
+        selectedMinute={selection?.date === date ? selection.minute : undefined}
         lang={lang}
         onSelect={minute => onSelectionChange({ date, minute })}
         onClose={() => setClockOpen(false)}

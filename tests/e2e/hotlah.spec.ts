@@ -7,11 +7,15 @@ test('customer can browse, filter, save and send a request',async({page})=>{
  await page.getByRole('button',{name:'All styles',exact:true}).click();await page.getByRole('button',{name:'Save service'}).first().click();
  await page.getByRole('link',{name:'French gel manicure',exact:true}).click();await expect(page.getByRole('heading',{name:'Choose your day'})).toBeVisible();
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').nth(1).click();
+ await expect(page.locator('.schedule-clock-trigger')).toBeVisible();
+ await expect(page.locator('.tp-ui-wrapper.hotlah-booking-clock')).toHaveCount(0);
+ await page.locator('.schedule-clock-trigger').click();
  await expect(page.locator('.tp-ui-wrapper.hotlah-booking-clock')).toBeVisible();
  await page.locator('.tp-ui-wrapper.hotlah-booking-clock .tp-ui-ok-btn').click();
  await expect(page.getByRole('button',{name:'Request',exact:true})).toBeEnabled();
  await page.getByRole('button',{name:'Request',exact:true}).click();
  await page.getByRole('button',{name:'Explore as a customer'}).click();await page.getByRole('button',{name:'Request',exact:true}).click();
+ await expect(page.getByLabel('Booking policy')).toBeVisible();
  await page.getByLabel('A note for your nailist (optional)').fill('I would love a shorter almond shape.');await page.getByRole('button',{name:'Send booking request'}).click();
  await expect(page.getByText('Pending approval',{exact:true})).toBeVisible();await expect(page.getByText('I would love a shorter almond shape.')).toBeVisible();
  await page.getByRole('textbox',{name:'Message',exact:true}).fill('Thank you, looking forward to it.');await page.getByRole('button',{name:'Send message'}).click();await expect(page.getByText('Thank you, looking forward to it.')).toBeVisible();
@@ -21,7 +25,11 @@ test('booking clock keeps hours visible and removes the minute dial',async({page
  await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:600,available:true},{minute:630,available:false},{minute:660,available:true}]})}));
  await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
- const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
+ const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');
+ await expect(clock).toHaveCount(0);
+ await page.locator('.schedule-clock-trigger').click();
+ await expect(clock).toBeVisible();
+ await expect(clock.getByText('Malaysia time')).toBeVisible();
  await expect(clock.getByText('AM',{exact:true})).toBeVisible();
  await expect(clock.getByText('PM',{exact:true})).toBeVisible();
  await expect(clock.locator('.tp-ui-minutes')).toBeHidden();
@@ -45,6 +53,7 @@ test('a half-hour-only opening remains bookable without a minute dial',async({pa
  await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:630,available:true}]})}));
  await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await page.locator('.schedule-clock-trigger').click();
  const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
  await expect(clock.getByRole('button',{name:'10:00 AM'})).toBeDisabled();
  await expect(clock.getByRole('button',{name:'10:30 AM'})).toBeVisible();
@@ -56,6 +65,7 @@ test('booking clock keeps afternoon availability in 12-hour format',async({page}
  await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:780,available:true}]})}));
  await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await page.locator('.schedule-clock-trigger').click();
  const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
  await expect(clock.getByText('PM',{exact:true})).toBeVisible();
  await clock.locator('.tp-ui-ok-btn').click();
@@ -67,6 +77,7 @@ test('booking clock opens at 2 PM and fits a narrow phone',async({page})=>{
  await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:840,available:true},{minute:870,available:true}]})}));
  await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await page.locator('.schedule-clock-trigger').click();
  const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
  await expect(clock.locator('.tp-ui-hour')).toHaveValue('02');
  await expect(clock.locator('.tp-ui-pm')).toHaveClass(/active/);
@@ -83,6 +94,7 @@ test('booking clock remains operable on a short phone',async({page})=>{
  await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:840,available:true},{minute:870,available:true}]})}));
  await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
  await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().click();
+ await page.locator('.schedule-clock-trigger').click();
  const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
  const bounds=await clock.boundingBox();expect(bounds).not.toBeNull();
  expect(bounds!.y).toBeGreaterThanOrEqual(0);
@@ -98,6 +110,7 @@ test('booking clock supports touch hour and start selection',async({browser})=>{
   await page.route(/\/api\/services\/french-gel\/availability\?date=/,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({slots:[{minute:780,available:true},{minute:840,available:true}]})}));
   await page.goto('/services/french-gel');await expect(page.locator('html')).toHaveAttribute('data-hydrated','true');
   await page.locator('.availability-panel .astryx-calendar-day:not(:disabled)').first().tap();
+  await page.locator('.schedule-clock-trigger').tap();
   const clock=page.locator('.tp-ui-wrapper.hotlah-booking-clock');await expect(clock).toBeVisible();
   const oneTip=clock.locator('.tp-ui-hour-time-12',{hasText:/^1$/});
   await oneTip.tap();

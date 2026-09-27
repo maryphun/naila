@@ -95,6 +95,7 @@ export default function ServicePage() {
       <p>{selection && `${friendlyDate(selection.date, lang)} · ${bookingTime(selection.minute)}`}</p>
       <label className="field">{t('A note for your nailist (optional)', '给美甲师留言（选填）')}<textarea rows={4} maxLength={1500} value={message} onChange={event => setMessage(event.target.value)} placeholder={t('A shorter shape? A different colour? Let them know.', '想要短一点的甲型或其他颜色？告诉美甲师吧。')} /></label>
       <p className="small muted">{t('No payment now. Your appointment is confirmed only after approval.', '现在无需付款。美甲师批准后，预约才算确认。')}</p>
+      {m.policy?.trim() && <section className="request-policy" aria-label={t('Booking policy', '预约政策')}><strong>{t('Booking policy', '预约政策')}</strong><p>{m.policy}</p></section>}
       {error && <ErrorNotice message={error} />}
       <button className="button primary full" disabled={busy} onClick={request}>{t(busy ? 'Sending…' : 'Send booking request', busy ? '发送中…' : '发送预约请求')}<ArrowRight size={18} /></button>
     </Modal>
