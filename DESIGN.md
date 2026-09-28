@@ -12,6 +12,14 @@ colors:
   quiet-hover: "#eeeedf"
   nailist-entry: "#fedcdb"
   nailist-workspace: "#fdf7f7"
+  merchant-action: "#93465e"
+  merchant-action-hover: "#7e3c51"
+  merchant-surface: "#fffcfc"
+  merchant-quiet: "#f4e9ec"
+  merchant-ink: "#372d32"
+  merchant-muted: "#78636b"
+  merchant-line: "#e4d4da"
+  merchant-outline: "#a28791"
   pending: "#69551c"
   error: "#933529"
 typography:
@@ -125,7 +133,7 @@ components:
 
 A minimalist, professional marketplace in warm ivory, charcoal and yellow. Manrope, fine outlines and natural nail photography give the interface a clean, approachable character. The approved direction is preserved across customer and merchant screens.
 
-Surfaces are flat and restrained, with generous separation between groups and compact supporting metadata. Yellow identifies actions and selections; green communicates availability, confirmation and keyboard focus. This document records the implemented system, including the final responsive overrides in app/styles.css.
+Surfaces are flat and restrained, with generous separation between groups and compact supporting metadata. Customer actions and selections use yellow; the merchant workspace pairs dusty rose actions with blush selections. Green communicates availability and confirmation. Keyboard focus is green for customers and dusty rose in the workspace. This document records the implemented system, including the final responsive overrides in app/styles.css.
 
 This phrase summarizes the approved direction; it is not an additional brand claim. Sources are PRODUCT.md, the approved concepts in design/mobile-v1/, app/styles.css, and the implemented React components. The frontmatter records reusable implemented values, which take precedence over approximate measurements in the earlier raster concepts.
 
@@ -161,7 +169,13 @@ A warm neutral foundation keeps service photography prominent, with a single yel
 - **Pending Ochre** (`pending`): pending status text and its dot.
 - **Error Rust** (`error`): field errors and alerts. Destructive text uses a closely related source value; retain its contextual styling.
 
-**The Selection Rule.** Use yellow for primary actions and selected controls; keep normal reading surfaces quiet.
+**The Selection Rule.** Customer screens use yellow for primary actions and selected controls. The merchant workspace uses dusty rose actions and soft blush selections; keep normal reading surfaces quiet.
+
+### Merchant workspace palette
+
+The nailist workspace keeps its pale blush canvas (`#fdf7f7`) with near-white rose surfaces, warm charcoal text, rose-grey secondary text and borders. Primary actions use dusty rose (`#93465e`) with near-white text, darkening on hover. Selected navigation, segmented controls, chips and switches use the softer entry blush (`#fedcdb`) with dark text. Confirmed states remain green; pending and error states retain distinct ochre and red text.
+
+`app/themes/merchant.mjs` defines the shared Astryx and Hotlah tokens. Rebuild its static artifacts with `corepack pnpm exec astryx theme build app/themes/merchant.mjs`. The route-selected root theme is present during server rendering and covers portaled dialogs, forms, notifications and the photo cropper. Returning to customer view restores the ivory/yellow palette.
 
 The sidecar's tonal ramps are synthesized inspection aids, not additional application tokens.
 
@@ -227,7 +241,7 @@ Booking cards are horizontal bordered summaries with an image, written status, n
 
 ### Navigation
 
-Desktop navigation is a compact header row; the active destination has a dark underline. Phones use four equal bottom destinations, each with an icon and visible label. A small yellow pill sits behind the active icon while text stays charcoal. Customer and merchant destinations change with context without changing the visual system.
+Desktop navigation is a compact header row; the active destination has a dark underline. Phones use four equal bottom destinations, each with an icon and visible label. A small yellow pill for customers, or blush pill for merchants, sits behind the active icon while text stays charcoal. Customer and merchant destinations change with context while keeping the same shapes and interaction behavior.
 
 ### Availability and status
 
@@ -243,7 +257,7 @@ Radix dialogs provide modal behavior, titles, close controls and optional descri
 
 ### Do:
 
-- Do use the implemented paper, ink and yellow tokens across customer and merchant screens.
+- Do use the shared theme tokens so surfaces, text, actions and selections follow the active customer or merchant palette.
 - Do keep editable phone inputs at 16px and preserve the enlarged frequent touch controls.
 - Do show status in words as well as color.
 - Do use real nail photography for merchant work and identify preview imagery and example content honestly.
