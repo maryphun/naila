@@ -8,11 +8,12 @@ export interface Service {
   id: string; merchant_id: string; name: string; name_zh: string; description: string;
   price: number; duration: number; buffer: number; image: string; style: string; shape: string;
   active: number; promoted: number; merchant_name: string; area: string; type: MerchantType; work_types?: MerchantType[];
-  lat: number; lng: number; distance?: number;
+  lat: number; lng: number; distance?: number; merchant_image?: string;
   next_available?: {date:string;minute:number} | null;
 }
 export interface Merchant {
   id: string; name: string; area: string; type: MerchantType; work_types: MerchantType[]; bio: string; styles: string[];
+  image?: string;
   hours: { open: string; close: string; days: number[] }; policy: string;
   auto_approve?: number; approved?: number; subscribed?: number; address?: string; phone?: string; shop_link?: string;
 }

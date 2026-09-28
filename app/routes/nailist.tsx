@@ -21,7 +21,7 @@ export default function NailistPage(){
   const label=(merchant.work_types?.length?merchant.work_types:[merchant.type]).map(type=>MERCHANT_TYPE_LABELS[type][lang]).join(' · ');
   return <article className="nailist-page">
     <PageHeader title={t('Nailist','美甲师')}/>
-    <img className="nailist-hero" src={services[0].image} alt={t(`${merchant.name}'s nail work`,`${merchant.name} 的美甲作品`)} width="1000" height="750"/>
+    <img className="nailist-hero" src={merchant.image||services[0].image} alt={merchant.image?t(`${merchant.name}'s studio`,`${merchant.name} 的工作室`):t(`${merchant.name}'s nail work`,`${merchant.name} 的美甲作品`)} width="1000" height="750"/>
     <header className="nailist-intro">
       <h1>{merchant.name}</h1>
       <p className="nailist-type">{label} <Check size={14}/> {t('Approved','已审核')}</p>

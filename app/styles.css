@@ -153,6 +153,8 @@
 .service-upload small{font-size:10px;color:var(--muted)}
 .service-upload input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .service-upload:focus-within{outline:2px solid var(--green);outline-offset:3px}
+.studio-photo-upload{background:var(--paper-quiet)}
+.review-studio-photo{width:100%;aspect-ratio:31/20;object-fit:cover;border:var(--border-width) solid var(--line-strong);border-radius:var(--radius-container)}
 .photo-crop-body{display:grid;gap:var(--spacing-4)}
 .photo-crop-preview{margin:0}
 .photo-crop-preview canvas{display:block;width:100%;height:auto;aspect-ratio:31/20;border:var(--border-width) solid var(--line-strong);border-radius:var(--radius-container);background:var(--paper-quiet);cursor:grab;touch-action:none}
@@ -293,6 +295,8 @@ body{background:#eeeedf}.app-shell{position:relative;width:100%;max-width:430px;
   --paper-raised:color-mix(in srgb,var(--paper) 96%,white);
   --paper-quiet:color-mix(in srgb,var(--paper) 88%,var(--line));
   --line-strong:color-mix(in srgb,var(--ink) 38%,var(--line));
+  --nailist-entry-surface:#fedcdb;
+  --nailist-workspace-surface:#fdf7f7;
   --yellow-hover:color-mix(in srgb,var(--yellow) 92%,var(--ink));
   --control-height:var(--spacing-12);
   --control-motion:var(--duration-fast) var(--ease-standard);
@@ -572,3 +576,8 @@ button.option-row:active,.option-row[href]:active{transform:scale(.99)}
 .merchant-hours-grid .field{min-width:0;text-align:center}
 .merchant-hours-grid input[type=time]{box-sizing:border-box;min-width:0;max-width:100%;padding-inline:var(--spacing-2);text-align:center}
 .business-overview>.text-button{display:flex;width:max-content;margin-inline:auto}
+
+/* A blush entry point and quieter merchant canvas distinguish the two sides. */
+.account-actions .nailist-workspace-entry{background:var(--nailist-entry-surface)}
+.account-actions .nailist-workspace-entry:hover{background:color-mix(in srgb,var(--nailist-entry-surface) 92%,var(--ink))}
+.merchant-shell,.merchant-shell .site-header,.merchant-shell .bottom-nav{background:var(--nailist-workspace-surface)}

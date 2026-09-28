@@ -13,7 +13,7 @@ export function MerchantCard({services}:{services:Service[]}) {
   const workTypes=lead.work_types?.length?lead.work_types:[lead.type];
   return <article className="service-card merchant-card">
     <Link className="service-photo" to={`/nailists/${lead.merchant_id}`} aria-label={t(`View ${lead.merchant_name}'s menu`,`查看 ${lead.merchant_name} 的服务菜单`)}>
-      <img src={lead.image} alt="" width="1000" height="750" loading="lazy"/>
+      <img src={lead.merchant_image||lead.image} alt="" width="1000" height="750" loading="lazy"/>
     </Link>
     <section className="service-content">
       <p className="service-meta"><span>{workTypes.map(type=>MERCHANT_TYPE_LABELS[type][lang]).join(' · ')}</span><span>{services.length} {t(services.length===1?'matching service':'matching services','项匹配服务')}</span></p>

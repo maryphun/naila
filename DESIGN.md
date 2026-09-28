@@ -10,6 +10,8 @@ colors:
   green: "#17644e"
   yellow-hover: "#f7c91b"
   quiet-hover: "#eeeedf"
+  nailist-entry: "#fedcdb"
+  nailist-workspace: "#fdf7f7"
   pending: "#69551c"
   error: "#933529"
 typography:
@@ -150,6 +152,8 @@ A warm neutral foundation keeps service photography prominent, with a single yel
 - **Quiet Olive Grey** (`muted`): supporting metadata and inactive states.
 - **Soft Divider** (`line`): internal rules and quiet field outlines.
 - **Quiet Hover** (`quiet-hover`): secondary and icon-button feedback.
+- **Nailist Entry Blush** (`nailist-entry`): the Account link into an existing nailist workspace.
+- **Nailist Workspace Blush** (`nailist-workspace`): the quieter workspace canvas and fixed navigation surfaces, distinct from customer-facing ivory.
 
 ### Functional colors
 

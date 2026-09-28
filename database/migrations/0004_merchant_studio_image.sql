@@ -1,0 +1,1 @@
+ALTER TABLE merchants ADD COLUMN image TEXT NOT NULL DEFAULT '';
