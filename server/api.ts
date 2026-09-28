@@ -10,6 +10,8 @@ import { localDate } from '../app/lib/types';
 import type { BookingRow } from './domain';
 import type { ApiContext, Actor } from './env';
 import type { Service } from '../app/lib/types';
+import { MAX_MEDIA_BYTES } from '../app/lib/media';
+import { readUploadBytes, UploadTooLargeError } from './upload-bytes';
 
 export const api = new Hono<ApiContext>();
 const uuid = () => crypto.randomUUID();
@@ -19,7 +21,7 @@ const requireAdmin = (c: Parameters<typeof actorFor>[0]) => {
   if(!isAdmin(actor,c.env,c.get('demo')))throw new HTTPException(403,{message:'Administrator access is required.'});
   return actor;
 };
-api.use('/api/*', bodyLimit({ maxSize: 5 * 1024 * 1024, onError: c => c.json({ error: 'Please choose a photo smaller than 5 MB.' }, 413) }));
+api.use('/api/*', bodyLimit({ maxSize: MAX_MEDIA_BYTES, onError: c => c.json({ error: 'Please choose a photo up to 5 MB.' }, 413) }));
 api.use('/api/*', async (c, next) => {
   c.header('Cache-Control', 'no-store');
   c.header('X-Content-Type-Options', 'nosniff');
@@ -403,13 +405,15 @@ api.post('/api/events', async c => {
 api.post('/api/uploads', async c => {
   await merchantId(c);
   if(!c.env.MEDIA)throw new HTTPException(503,{message:'Photo storage is not connected yet.'});
-  const data=await c.req.raw.arrayBuffer(); const bytes=new Uint8Array(data);
+  let bytes:Uint8Array;
+  try{bytes=await readUploadBytes(c.req.raw.body,MAX_MEDIA_BYTES);}
+  catch(error){if(error instanceof UploadTooLargeError)throw new HTTPException(413,{message:'Please choose a photo up to 5 MB.'});throw error;}
   const jpeg=bytes[0]===0xff && bytes[1]===0xd8;
   const png=bytes[0]===137 && bytes[1]===80 && bytes[2]===78 && bytes[3]===71;
   const webp=String.fromCharCode(...bytes.slice(0,4))==='RIFF' && String.fromCharCode(...bytes.slice(8,12))==='WEBP';
   if(!jpeg&&!png&&!webp)throw new HTTPException(400,{message:'Please upload a JPEG, PNG, or WebP photo.'});
   const ext=jpeg?'jpg':png?'png':'webp'; const key=`${uuid()}.${ext}`;
-  await c.env.MEDIA.put(key,data,{httpMetadata:{contentType:jpeg?'image/jpeg':`image/${ext}`}});
+  await c.env.MEDIA.put(key,bytes,{httpMetadata:{contentType:jpeg?'image/jpeg':`image/${ext}`}});
   return c.json({url:`/api/media/${key}`},201);
 });
 api.get('/api/media/:key', async c => {
